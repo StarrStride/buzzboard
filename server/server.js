@@ -1,0 +1,3971 @@
+import express from "express";
+import dotenv from "dotenv";
+import { createServer } from "node:http";
+import { Server } from "socket.io";
+
+import {
+  getSavedGames,
+  saveGameToLibrary,
+  loadGameFromLibrary,
+  deleteGameFromLibrary,
+} from "./storage.js";
+
+dotenv.config();
+
+const app = express();
+const port = 3001;
+
+const TEST_CLUE_LIMIT = null;
+
+const BUZZ_WINDOW_MS = 10_000;
+const ANSWER_WINDOW_MS = 8_000;
+const DAILY_DOUBLE_ANSWER_MS = 12_000;
+
+const httpServer = createServer(app);
+const io = new Server(httpServer);
+
+app.use(express.json());
+
+
+/*
+ * --------------------------------
+ * DISCORD OAUTH
+ * --------------------------------
+ */
+
+app.post("/api/token", async (req, res) => {
+  try {
+    const response = await fetch(
+      "https://discord.com/api/oauth2/token",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "application/x-www-form-urlencoded",
+        },
+
+        body: new URLSearchParams({
+          client_id:
+            process.env.DISCORD_CLIENT_ID,
+
+          client_secret:
+            process.env.DISCORD_CLIENT_SECRET,
+
+          grant_type:
+            "authorization_code",
+
+          code:
+            req.body.code,
+        }),
+      }
+    );
+
+    const data =
+      await response.json();
+
+    if (!response.ok) {
+      console.error(
+        "Discord token error:",
+        data
+      );
+
+      return res
+        .status(response.status)
+        .json(data);
+    }
+
+    res.json({
+      access_token:
+        data.access_token,
+    });
+  } catch (error) {
+    console.error(
+      "Token exchange failed:",
+      error
+    );
+
+    res.status(500).json({
+      error:
+        "Token exchange failed",
+    });
+  }
+});
+
+
+/*
+ * --------------------------------
+ * ACTIVE GAMES + TIMER HANDLES
+ * --------------------------------
+ */
+
+const games =
+  new Map();
+
+const buzzerTimeouts =
+  new Map();
+
+const answerTimeouts =
+  new Map();
+
+
+function clearStoredTimeout(
+  timeoutMap,
+  instanceId
+) {
+  const timeout =
+    timeoutMap.get(
+      instanceId
+    );
+
+  if (timeout) {
+    clearTimeout(
+      timeout
+    );
+
+    timeoutMap.delete(
+      instanceId
+    );
+  }
+}
+
+
+function clearBuzzerCountdown(
+  game
+) {
+  clearStoredTimeout(
+    buzzerTimeouts,
+    game.instanceId
+  );
+
+  game.timers.buzzerEndsAt =
+    null;
+}
+
+
+function clearAnswerCountdown(
+  game
+) {
+  clearStoredTimeout(
+    answerTimeouts,
+    game.instanceId
+  );
+
+  game.timers.answerEndsAt =
+    null;
+
+  game.timers.answerType =
+    null;
+
+  game.timers.answerPlayerId =
+    null;
+}
+
+
+function clearAllGameTimers(
+  game
+) {
+  clearBuzzerCountdown(
+    game
+  );
+
+  clearAnswerCountdown(
+    game
+  );
+}
+
+
+function createGame(
+  instanceId,
+  hostPlayer
+) {
+  const game = {
+    instanceId,
+
+    hostId:
+      hostPlayer.id,
+
+    phase:
+      "lobby",
+
+    players:
+      new Map(),
+
+    gameConfig:
+      null,
+
+    currentClue:
+      null,
+
+    usedClues:
+      new Set(),
+
+    buzzer: {
+      open:
+        false,
+
+      winner:
+        null,
+
+      lockedOut:
+        new Set(),
+    },
+
+    dailyDouble: {
+      playerId:
+        null,
+
+      wager:
+        null,
+
+      wagerLocked:
+        false,
+    },
+
+    timers: {
+      buzzerEndsAt:
+        null,
+
+      answerEndsAt:
+        null,
+
+      answerType:
+        null,
+
+      answerPlayerId:
+        null,
+    },
+
+    finalRound: {
+      submissions:
+        new Map(),
+
+      answersRevealed:
+        false,
+    },
+    undoSnapshot:
+      null,
+  };
+
+  games.set(
+    instanceId,
+    game
+  );
+
+  return game;
+}
+
+
+/*
+ * --------------------------------
+ * BASIC GAME HELPERS
+ * --------------------------------
+ */
+
+function playerIsHost(
+  game,
+  playerId
+) {
+  return (
+    game.hostId ===
+    playerId
+  );
+}
+/*
+ * --------------------------------
+ * ONE-LEVEL HOST UNDO
+ * --------------------------------
+ */
+
+function saveUndoSnapshot(
+  game,
+  label
+) {
+  game.undoSnapshot =
+    structuredClone({
+      label,
+
+      hostId:
+        game.hostId,
+
+      phase:
+        game.phase,
+
+      players:
+        game.players,
+
+      gameConfig:
+        game.gameConfig,
+
+      currentClue:
+        game.currentClue,
+
+      usedClues:
+        game.usedClues,
+
+      buzzer:
+        game.buzzer,
+
+      dailyDouble:
+        game.dailyDouble,
+
+      timers:
+        game.timers,
+
+      finalRound:
+        game.finalRound,
+    });
+}
+
+
+function restoreUndoSnapshot(
+  game
+) {
+  const snapshot =
+    game.undoSnapshot;
+
+  if (!snapshot) {
+    return false;
+  }
+
+  clearAllGameTimers(
+    game
+  );
+
+  game.hostId =
+    snapshot.hostId;
+
+  game.phase =
+    snapshot.phase;
+
+  game.players =
+    snapshot.players;
+
+  game.gameConfig =
+    snapshot.gameConfig;
+
+  game.currentClue =
+    snapshot.currentClue;
+
+  game.usedClues =
+    snapshot.usedClues;
+
+  game.buzzer =
+    snapshot.buzzer;
+
+  game.dailyDouble =
+    snapshot.dailyDouble;
+
+  game.finalRound =
+    snapshot.finalRound;
+
+  const previousTimers =
+    snapshot.timers;
+
+  game.timers = {
+    buzzerEndsAt:
+      null,
+
+    answerEndsAt:
+      null,
+
+    answerType:
+      null,
+
+    answerPlayerId:
+      null,
+  };
+
+  game.undoSnapshot =
+    null;
+
+  /*
+   * If the restored state had an
+   * active countdown, restart it at
+   * its full duration rather than
+   * trying to resume an old deadline.
+   */
+  if (
+    previousTimers
+      ?.buzzerEndsAt !==
+      null &&
+    game.phase ===
+      "clue" &&
+    game.buzzer.open &&
+    !game.buzzer.winner
+  ) {
+    startBuzzerWindow(
+      game
+    );
+  } else if (
+    previousTimers
+      ?.answerEndsAt !==
+      null &&
+    previousTimers
+      ?.answerPlayerId
+  ) {
+    const player =
+      game.players.get(
+        previousTimers
+          .answerPlayerId
+      );
+
+    if (player) {
+      if (
+        previousTimers
+          .answerType ===
+          "daily_double" &&
+        game.phase ===
+          "daily_double_clue"
+      ) {
+        startDailyDoubleAnswerWindow(
+          game,
+          player
+        );
+      } else if (
+        previousTimers
+          .answerType ===
+          "normal" &&
+        game.phase ===
+          "clue" &&
+        game.buzzer
+          .winner
+          ?.playerId ===
+          player.id
+      ) {
+        startNormalAnswerWindow(
+          game,
+          player
+        );
+      }
+    }
+  }
+
+  return true;
+}
+
+
+function resetBuzzer(
+  game
+) {
+  clearBuzzerCountdown(
+    game
+  );
+
+  clearAnswerCountdown(
+    game
+  );
+
+  game.buzzer.open =
+    false;
+
+  game.buzzer.winner =
+    null;
+
+  game.buzzer.lockedOut.clear();
+}
+
+
+function resetScores(
+  game
+) {
+  for (
+    const player of
+    game.players.values()
+  ) {
+    player.score = 0;
+  }
+}
+
+
+function resetFinalRound(
+  game
+) {
+  game.finalRound
+    .submissions
+    .clear();
+
+  game.finalRound
+    .answersRevealed =
+    false;
+}
+
+
+function resetDailyDouble(
+  game
+) {
+  game.dailyDouble.playerId =
+    null;
+
+  game.dailyDouble.wager =
+    null;
+
+  game.dailyDouble.wagerLocked =
+    false;
+}
+
+
+function resetRound(
+  game
+) {
+  clearAllGameTimers(
+    game
+  );
+  game.undoSnapshot =
+    null;
+
+  game.usedClues.clear();
+
+  game.currentClue =
+    null;
+
+  resetBuzzer(
+    game
+  );
+
+  resetDailyDouble(
+    game
+  );
+
+  resetScores(
+    game
+  );
+
+  resetFinalRound(
+    game
+  );
+}
+
+
+function getTotalClueCount(
+  game
+) {
+  if (
+    !game.gameConfig
+      ?.categories
+  ) {
+    return 0;
+  }
+
+  return (
+    game.gameConfig.categories.reduce(
+      (
+        total,
+        category
+      ) =>
+        total +
+        (
+          Array.isArray(
+            category.clues
+          )
+            ? category
+                .clues
+                .length
+            : 0
+        ),
+
+      0
+    )
+  );
+}
+
+
+function getHighestClueValue(
+  game
+) {
+  if (
+    !game.gameConfig
+      ?.categories
+  ) {
+    return 0;
+  }
+
+  let highest =
+    0;
+
+  for (
+    const category of
+    game.gameConfig.categories
+  ) {
+    for (
+      const clue of
+      category.clues ??
+      []
+    ) {
+      if (
+        Number.isFinite(
+          clue.value
+        )
+      ) {
+        highest =
+          Math.max(
+            highest,
+            clue.value
+          );
+      }
+    }
+  }
+
+  return highest;
+}
+
+
+function getDailyDoubleMaxWager(
+  game,
+  player
+) {
+  return Math.max(
+    0,
+
+    Math.floor(
+      player?.score ??
+      0
+    ),
+
+    getHighestClueValue(
+      game
+    )
+  );
+}
+
+
+function cleanText(
+  value,
+  fallback = ""
+) {
+  if (
+    typeof value !==
+    "string"
+  ) {
+    return fallback;
+  }
+
+  return value
+    .trim()
+    .slice(
+      0,
+      500
+    );
+}
+
+
+/*
+ * --------------------------------
+ * GAME CONFIG
+ * --------------------------------
+ */
+
+function normalizeGameConfig(
+  rawConfig
+) {
+  const existingId =
+    typeof rawConfig?.id ===
+      "string" &&
+    rawConfig.id.trim()
+      ? rawConfig.id
+          .trim()
+          .slice(
+            0,
+            100
+          )
+      : null;
+
+  const title =
+    cleanText(
+      rawConfig?.title,
+      "Untitled Game"
+    );
+
+  const rawCategories =
+    Array.isArray(
+      rawConfig?.categories
+    )
+      ? rawConfig.categories.slice(
+          0,
+          6
+        )
+      : [];
+
+  const categories =
+    rawCategories.map(
+      (
+        category,
+        categoryIndex
+      ) => {
+        const rawClues =
+          Array.isArray(
+            category?.clues
+          )
+            ? category.clues.slice(
+                0,
+                5
+              )
+            : [];
+
+        const clues =
+          rawClues.map(
+            (
+              clue,
+              clueIndex
+            ) => ({
+              id:
+                `c${categoryIndex}-q${clueIndex}`,
+
+              value:
+                (
+                  clueIndex +
+                  1
+                ) *
+                100,
+
+              question:
+                cleanText(
+                  clue?.question
+                ),
+
+              answer:
+                cleanText(
+                  clue?.answer
+                ),
+
+              dailyDouble:
+                clue?.dailyDouble ===
+                true,
+            })
+          );
+
+        return {
+          id:
+            `c${categoryIndex}`,
+
+          name:
+            cleanText(
+              category?.name,
+
+              `Category ${
+                categoryIndex +
+                1
+              }`
+            ),
+
+          clues,
+        };
+      }
+    );
+
+  if (
+    categories.length !==
+      6 ||
+    categories.some(
+      (category) =>
+        category.clues
+          .length !==
+        5
+    )
+  ) {
+    return null;
+  }
+
+  const finalRound = {
+    category:
+      cleanText(
+        rawConfig
+          ?.finalRound
+          ?.category,
+
+        "Final Round"
+      ),
+
+    question:
+      cleanText(
+        rawConfig
+          ?.finalRound
+          ?.question
+      ),
+
+    answer:
+      cleanText(
+        rawConfig
+          ?.finalRound
+          ?.answer
+      ),
+  };
+
+  return {
+    ...(existingId
+      ? {
+          id:
+            existingId,
+        }
+      : {}),
+
+    title,
+    categories,
+    finalRound,
+  };
+}
+
+
+/*
+ * --------------------------------
+ * CLUE + BOARD HELPERS
+ * --------------------------------
+ */
+
+function getClue(
+  game,
+  categoryId,
+  clueId
+) {
+  const category =
+    game.gameConfig
+      ?.categories.find(
+        (item) =>
+          item.id ===
+          categoryId
+      );
+
+  if (!category) {
+    return null;
+  }
+
+  const clue =
+    category.clues.find(
+      (item) =>
+        item.id ===
+        clueId
+    );
+
+  if (!clue) {
+    return null;
+  }
+
+  return {
+    category,
+    clue,
+  };
+}
+
+
+function makePublicBoard(
+  gameConfig
+) {
+  if (!gameConfig) {
+    return null;
+  }
+
+  return {
+    title:
+      gameConfig.title,
+
+    categories:
+      gameConfig.categories.map(
+        (category) => ({
+          id:
+            category.id,
+
+          name:
+            category.name,
+
+          clues:
+            category.clues.map(
+              (clue) => ({
+                id:
+                  clue.id,
+
+                value:
+                  clue.value,
+              })
+            ),
+        })
+      ),
+  };
+}
+
+
+/*
+ * --------------------------------
+ * SAVED GAME LIBRARY
+ * --------------------------------
+ */
+
+function makeLibrarySummary(
+  savedGame
+) {
+  return {
+    id:
+      savedGame.id,
+
+    title:
+      savedGame.title,
+
+    updatedAt:
+      savedGame.updatedAt ??
+      null,
+
+    categoryCount:
+      Array.isArray(
+        savedGame.categories
+      )
+        ? savedGame
+            .categories
+            .length
+        : 0,
+
+    clueCount:
+      Array.isArray(
+        savedGame.categories
+      )
+        ? savedGame.categories.reduce(
+            (
+              total,
+              category
+            ) =>
+              total +
+              (
+                Array.isArray(
+                  category.clues
+                )
+                  ? category
+                      .clues
+                      .length
+                  : 0
+              ),
+
+            0
+          )
+        : 0,
+  };
+}
+
+
+async function sendLibrary(
+  socket
+) {
+  try {
+    const savedGames =
+      await getSavedGames();
+
+    socket.emit(
+      "saved_games",
+
+      savedGames.map(
+        makeLibrarySummary
+      )
+    );
+  } catch (error) {
+    console.error(
+      "Could not list saved games:",
+      error
+    );
+
+    socket.emit(
+      "library_error",
+      {
+        message:
+          "Could not load saved games.",
+      }
+    );
+  }
+}
+
+
+/*
+ * --------------------------------
+ * FINAL ROUND HELPERS
+ * --------------------------------
+ */
+
+function getOrCreateFinalSubmission(
+  game,
+  playerId
+) {
+  let submission =
+    game.finalRound
+      .submissions
+      .get(
+        playerId
+      );
+
+  if (!submission) {
+    submission = {
+      wager:
+        null,
+
+      wagerLocked:
+        false,
+
+      answer:
+        "",
+
+      answerLocked:
+        false,
+
+      judged:
+        null,
+    };
+
+    game.finalRound
+      .submissions
+      .set(
+        playerId,
+        submission
+      );
+  }
+
+  return submission;
+}
+
+
+function allPlayersHaveLockedWagers(
+  game
+) {
+  if (
+    game.players.size ===
+    0
+  ) {
+    return false;
+  }
+
+  return Array.from(
+    game.players.keys()
+  ).every(
+    (playerId) => {
+      const submission =
+        game.finalRound
+          .submissions
+          .get(
+            playerId
+          );
+
+      return (
+        submission
+          ?.wagerLocked ===
+        true
+      );
+    }
+  );
+}
+
+
+function allPlayersHaveLockedAnswers(
+  game
+) {
+  if (
+    game.players.size ===
+    0
+  ) {
+    return false;
+  }
+
+  return Array.from(
+    game.players.keys()
+  ).every(
+    (playerId) => {
+      const submission =
+        game.finalRound
+          .submissions
+          .get(
+            playerId
+          );
+
+      return (
+        submission
+          ?.answerLocked ===
+        true
+      );
+    }
+  );
+}
+
+
+function allFinalAnswersJudged(
+  game
+) {
+  if (
+    game.players.size ===
+    0
+  ) {
+    return false;
+  }
+
+  return Array.from(
+    game.players.keys()
+  ).every(
+    (playerId) => {
+      const submission =
+        game.finalRound
+          .submissions
+          .get(
+            playerId
+          );
+
+      return (
+        submission?.judged ===
+          true ||
+        submission?.judged ===
+          false
+      );
+    }
+  );
+}
+
+
+function serializeFinalRoundForSocket(
+  game,
+  socket
+) {
+  if (
+    !game.gameConfig
+      ?.finalRound
+  ) {
+    return null;
+  }
+
+  const isHost =
+    socket.data
+      .playerId ===
+    game.hostId;
+
+  const ownSubmission =
+    game.finalRound
+      .submissions
+      .get(
+        socket.data
+          .playerId
+      );
+
+  const statuses =
+    Array.from(
+      game.players.values()
+    ).map(
+      (player) => {
+        const submission =
+          game.finalRound
+            .submissions
+            .get(
+              player.id
+            );
+
+        const base = {
+          playerId:
+            player.id,
+
+          name:
+            player.name,
+
+          wagerLocked:
+            submission
+              ?.wagerLocked ===
+            true,
+
+          answerLocked:
+            submission
+              ?.answerLocked ===
+            true,
+
+          judged:
+            submission
+              ?.judged ??
+            null,
+        };
+
+        if (
+          game.finalRound
+            .answersRevealed
+        ) {
+          return {
+            ...base,
+
+            wager:
+              submission
+                ?.wager ??
+              0,
+
+            answer:
+              submission
+                ?.answer ??
+              "",
+          };
+        }
+
+        return base;
+      }
+    );
+
+  return {
+    category:
+      game.gameConfig
+        .finalRound
+        .category,
+
+    question:
+      game.phase ===
+        "final_clue" ||
+      game.phase ===
+        "final_reveal" ||
+      game.phase ===
+        "finished"
+        ? game.gameConfig
+            .finalRound
+            .question
+        : null,
+
+    correctAnswer:
+      isHost &&
+      (
+        game.phase ===
+          "final_reveal" ||
+        game.phase ===
+          "finished"
+      )
+        ? game.gameConfig
+            .finalRound
+            .answer
+        : null,
+
+    ownWager:
+      ownSubmission
+        ?.wager ??
+      null,
+
+    ownWagerLocked:
+      ownSubmission
+        ?.wagerLocked ===
+      true,
+
+    ownAnswer:
+      ownSubmission
+        ?.answer ??
+      "",
+
+    ownAnswerLocked:
+      ownSubmission
+        ?.answerLocked ===
+      true,
+
+    allWagersLocked:
+      allPlayersHaveLockedWagers(
+        game
+      ),
+
+    allAnswersLocked:
+      allPlayersHaveLockedAnswers(
+        game
+      ),
+
+    answersRevealed:
+      game.finalRound
+        .answersRevealed,
+
+    statuses,
+  };
+}
+
+
+/*
+ * --------------------------------
+ * PER-PLAYER GAME STATE
+ * --------------------------------
+ */
+
+function serializeGameForSocket(
+  game,
+  socket
+) {
+  const isHost =
+    socket.data
+      .playerId ===
+    game.hostId;
+
+  return {
+    hostId:
+      game.hostId,
+
+    phase:
+      game.phase,
+
+    players:
+      Array.from(
+        game.players.values()
+      ),
+
+    board:
+      makePublicBoard(
+        game.gameConfig
+      ),
+
+    editorConfig:
+      isHost
+        ? game.gameConfig
+        : null,
+
+    currentClue:
+      game.currentClue
+        ? {
+            categoryId:
+              game.currentClue
+                .categoryId,
+
+            categoryName:
+              game.currentClue
+                .categoryName,
+
+            clueId:
+              game.currentClue
+                .clueId,
+
+            value:
+              game.currentClue
+                .value,
+
+            question:
+              game.currentClue
+                .dailyDouble ===
+                true &&
+              game.phase !==
+                "daily_double_clue"
+                ? null
+                : game.currentClue
+                    .question,
+
+            answer:
+              isHost &&
+              (
+                game.currentClue
+                  .dailyDouble !==
+                  true ||
+                game.phase ===
+                  "daily_double_clue"
+              )
+                ? game.currentClue
+                    .answer
+                : null,
+
+            dailyDouble:
+              game.currentClue
+                .dailyDouble ===
+              true,
+          }
+        : null,
+
+    usedClues:
+      Array.from(
+        game.usedClues
+      ),
+
+    buzzer: {
+      open:
+        game.buzzer.open,
+
+      winner:
+        game.buzzer.winner,
+
+      lockedOut:
+        Array.from(
+          game.buzzer
+            .lockedOut
+        ),
+    },
+
+    dailyDouble: {
+      playerId:
+        game.dailyDouble
+          .playerId,
+
+      wager:
+        game.dailyDouble
+          .wager,
+
+      wagerLocked:
+        game.dailyDouble
+          .wagerLocked,
+
+      maxWager:
+        game.dailyDouble
+          .playerId
+          ? getDailyDoubleMaxWager(
+              game,
+
+              game.players.get(
+                game.dailyDouble
+                  .playerId
+              )
+            )
+          : 0,
+    },
+
+    timers: {
+      buzzerEndsAt:
+        game.timers
+          .buzzerEndsAt,
+
+      answerEndsAt:
+        game.timers
+          .answerEndsAt,
+
+      answerType:
+        game.timers
+          .answerType,
+
+      answerPlayerId:
+        game.timers
+          .answerPlayerId,
+
+      buzzWindowMs:
+        BUZZ_WINDOW_MS,
+
+      answerWindowMs:
+        ANSWER_WINDOW_MS,
+
+      dailyDoubleAnswerMs:
+        DAILY_DOUBLE_ANSWER_MS,
+    },
+
+    hostTools: {
+      canUndo:
+        Boolean(
+          game.undoSnapshot
+        ),
+
+      undoLabel:
+        game.undoSnapshot
+          ?.label ??
+        null,
+    },
+    finalRound:
+      serializeFinalRoundForSocket(
+        game,
+        socket
+      ),
+  };
+}
+
+
+/*
+ * --------------------------------
+ * SEND STATE TO EVERY PLAYER
+ * --------------------------------
+ */
+
+function sendGameState(
+  instanceId
+) {
+  const game =
+    games.get(
+      instanceId
+    );
+
+  if (!game) {
+    return;
+  }
+
+  const room =
+    io.sockets
+      .adapter
+      .rooms
+      .get(
+        instanceId
+      );
+
+  if (!room) {
+    return;
+  }
+
+  for (
+    const socketId of
+    room
+  ) {
+    const roomSocket =
+      io.sockets
+        .sockets
+        .get(
+          socketId
+        );
+
+    if (!roomSocket) {
+      continue;
+    }
+
+    roomSocket.emit(
+      "game_state",
+
+      serializeGameForSocket(
+        game,
+        roomSocket
+      )
+    );
+
+    roomSocket.emit(
+      "host_status",
+      {
+        isHost:
+          roomSocket.data
+            .playerId ===
+          game.hostId,
+      }
+    );
+  }
+}
+
+
+/*
+ * --------------------------------
+ * TIMED BUZZER + ANSWER WINDOWS
+ * --------------------------------
+ */
+
+function startBuzzerWindow(
+  game
+) {
+  clearBuzzerCountdown(
+    game
+  );
+
+  clearAnswerCountdown(
+    game
+  );
+
+  game.buzzer.open =
+    true;
+
+  game.buzzer.winner =
+    null;
+
+  game.timers.buzzerEndsAt =
+    Date.now() +
+    BUZZ_WINDOW_MS;
+
+  const timeout =
+    setTimeout(
+      () => {
+        const currentGame =
+          games.get(
+            game.instanceId
+          );
+
+        if (
+          !currentGame ||
+          currentGame !==
+            game ||
+          game.phase !==
+            "clue" ||
+          !game.buzzer.open ||
+          game.buzzer.winner
+        ) {
+          return;
+        }
+
+        game.buzzer.open =
+          false;
+
+        game.timers.buzzerEndsAt =
+          null;
+
+        buzzerTimeouts.delete(
+          game.instanceId
+        );
+
+        console.log(
+          `Buzzer window expired: ${game.instanceId}`
+        );
+
+        sendGameState(
+          game.instanceId
+        );
+      },
+
+      BUZZ_WINDOW_MS
+    );
+
+  buzzerTimeouts.set(
+    game.instanceId,
+    timeout
+  );
+}
+
+
+function applyNormalIncorrect(
+  game,
+  wrongPlayerId,
+  reason =
+    "INCORRECT"
+) {
+  clearAnswerCountdown(
+    game
+  );
+
+  const wrongPlayer =
+    game.players.get(
+      wrongPlayerId
+    );
+
+  if (
+    !wrongPlayer ||
+    !game.currentClue
+  ) {
+    return false;
+  }
+
+  wrongPlayer.score -=
+    game.currentClue
+      .value;
+
+  game.buzzer
+    .lockedOut
+    .add(
+      wrongPlayer.id
+    );
+
+  game.buzzer.winner =
+    null;
+
+  const eligiblePlayers =
+    Array.from(
+      game.players.values()
+    ).filter(
+      (player) =>
+        !game.buzzer
+          .lockedOut
+          .has(
+            player.id
+          )
+    );
+
+  console.log(
+    `${wrongPlayer.name} ${reason} -$${game.currentClue.value}`
+  );
+
+  if (
+    eligiblePlayers.length >
+    0
+  ) {
+    startBuzzerWindow(
+      game
+    );
+  } else {
+    clearBuzzerCountdown(
+      game
+    );
+
+    game.buzzer.open =
+      false;
+  }
+
+  return true;
+}
+
+
+function startNormalAnswerWindow(
+  game,
+  player
+) {
+  clearBuzzerCountdown(
+    game
+  );
+
+  clearAnswerCountdown(
+    game
+  );
+
+  game.buzzer.open =
+    false;
+
+  game.timers.answerType =
+    "normal";
+
+  game.timers.answerPlayerId =
+    player.id;
+
+  game.timers.answerEndsAt =
+    Date.now() +
+    ANSWER_WINDOW_MS;
+
+  const timeout =
+    setTimeout(
+      () => {
+        const currentGame =
+          games.get(
+            game.instanceId
+          );
+
+        if (
+          !currentGame ||
+          currentGame !==
+            game ||
+          game.phase !==
+            "clue" ||
+          game.buzzer
+            .winner
+            ?.playerId !==
+            player.id
+        ) {
+          return;
+        }
+
+        answerTimeouts.delete(
+          game.instanceId
+        );
+
+        console.log(
+          `ANSWER TIMEOUT: ${player.name}`
+        );
+
+        saveUndoSnapshot(
+          game,
+          "Answer timeout"
+        );
+        applyNormalIncorrect(
+          game,
+          player.id,
+          "TIMEOUT"
+        );
+
+        sendGameState(
+          game.instanceId
+        );
+      },
+
+      ANSWER_WINDOW_MS
+    );
+
+  answerTimeouts.set(
+    game.instanceId,
+    timeout
+  );
+}
+
+
+function startDailyDoubleAnswerWindow(
+  game,
+  player
+) {
+  clearBuzzerCountdown(
+    game
+  );
+
+  clearAnswerCountdown(
+    game
+  );
+
+  game.timers.answerType =
+    "daily_double";
+
+  game.timers.answerPlayerId =
+    player.id;
+
+  game.timers.answerEndsAt =
+    Date.now() +
+    DAILY_DOUBLE_ANSWER_MS;
+
+  const timeout =
+    setTimeout(
+      () => {
+        const currentGame =
+          games.get(
+            game.instanceId
+          );
+
+        if (
+          !currentGame ||
+          currentGame !==
+            game ||
+          game.phase !==
+            "daily_double_clue" ||
+          game.dailyDouble
+            .playerId !==
+            player.id
+        ) {
+          return;
+        }
+
+        answerTimeouts.delete(
+          game.instanceId
+        );
+
+        const wager =
+          game.dailyDouble
+            .wager ??
+          0;
+
+        saveUndoSnapshot(
+          game,
+          "Daily Double timeout"
+        );
+        player.score -=
+          wager;
+
+        console.log(
+          `${player.name} DAILY DOUBLE TIMEOUT -$${wager}`
+        );
+
+        finishClue(
+          game
+        );
+
+        sendGameState(
+          game.instanceId
+        );
+      },
+
+      DAILY_DOUBLE_ANSWER_MS
+    );
+
+  answerTimeouts.set(
+    game.instanceId,
+    timeout
+  );
+}
+
+
+/*
+ * --------------------------------
+ * ROUND TRANSITIONS
+ * --------------------------------
+ */
+
+function resetGameForConfig(
+  game
+) {
+  resetRound(
+    game
+  );
+}
+
+
+function startFinalRound(
+  game
+) {
+  clearAllGameTimers(
+    game
+  );
+
+  game.currentClue =
+    null;
+
+  resetBuzzer(
+    game
+  );
+
+  resetDailyDouble(
+    game
+  );
+
+  resetFinalRound(
+    game
+  );
+
+  for (
+    const playerId of
+    game.players.keys()
+  ) {
+    getOrCreateFinalSubmission(
+      game,
+      playerId
+    );
+  }
+
+  game.phase =
+    "final_wager";
+
+  console.log(
+    `Final Round started: ${game.instanceId}`
+  );
+}
+
+
+function finishClue(
+  game
+) {
+  clearAllGameTimers(
+    game
+  );
+
+  if (
+    game.currentClue
+  ) {
+    game.usedClues.add(
+      game.currentClue
+        .clueId
+    );
+  }
+
+  game.currentClue =
+    null;
+
+  resetBuzzer(
+    game
+  );
+
+  resetDailyDouble(
+    game
+  );
+
+  const realTotalClues =
+    getTotalClueCount(
+      game
+    );
+
+  const cluesNeededToFinish =
+    TEST_CLUE_LIMIT ??
+    realTotalClues;
+
+  if (
+    cluesNeededToFinish >
+      0 &&
+    game.usedClues.size >=
+      cluesNeededToFinish
+  ) {
+    startFinalRound(
+      game
+    );
+  } else {
+    game.phase =
+      "board";
+  }
+}
+
+
+/*
+ * --------------------------------
+ * SOCKET.IO
+ * --------------------------------
+ */
+
+io.on(
+  "connection",
+
+  (socket) => {
+    console.log(
+      "Socket connected:",
+      socket.id
+    );
+
+
+    /*
+     * -----------------------------
+     * JOIN GAME
+     * -----------------------------
+     */
+
+    socket.on(
+      "join_game",
+
+      async ({
+        instanceId,
+        player,
+      }) => {
+        if (
+          !instanceId ||
+          !player?.id
+        ) {
+          return;
+        }
+
+        socket.join(
+          instanceId
+        );
+
+        socket.data.instanceId =
+          instanceId;
+
+        socket.data.playerId =
+          player.id;
+
+        let game =
+          games.get(
+            instanceId
+          );
+
+        if (!game) {
+          game =
+            createGame(
+              instanceId,
+              player
+            );
+        }
+
+        /*
+         * Membership changes are not
+         * part of host undo history.
+         */
+        game.undoSnapshot =
+          null;
+
+        const existingPlayer =
+          game.players.get(
+            player.id
+          );
+
+        if (
+          existingPlayer
+        ) {
+          game.players.set(
+            player.id,
+            {
+              ...existingPlayer,
+              ...player,
+            }
+          );
+        } else {
+          game.players.set(
+            player.id,
+            {
+              ...player,
+              score: 0,
+            }
+          );
+        }
+
+        if (
+          game.phase.startsWith(
+            "final_"
+          ) ||
+          game.phase ===
+            "finished"
+        ) {
+          getOrCreateFinalSubmission(
+            game,
+            player.id
+          );
+        }
+
+        console.log(
+          `${player.name} joined ${instanceId}`
+        );
+
+        sendGameState(
+          instanceId
+        );
+
+        if (
+          playerIsHost(
+            game,
+            player.id
+          )
+        ) {
+          await sendLibrary(
+            socket
+          );
+        }
+      }
+    );
+
+
+    /*
+     * -----------------------------
+     * SAVED GAMES
+     * -----------------------------
+     */
+
+    socket.on(
+      "list_saved_games",
+
+      async () => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          )
+        ) {
+          return;
+        }
+
+        await sendLibrary(
+          socket
+        );
+      }
+    );
+
+
+    socket.on(
+      "save_game_to_library",
+
+      async (
+        rawConfig
+      ) => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          ) ||
+          game.phase !==
+            "lobby"
+        ) {
+          return;
+        }
+
+        const normalized =
+          normalizeGameConfig(
+            rawConfig
+          );
+
+        if (
+          !normalized
+        ) {
+          socket.emit(
+            "library_error",
+            {
+              message:
+                "BuzzBoard requires exactly 6 categories with 5 clues each.",
+            }
+          );
+
+          return;
+        }
+
+        try {
+          const savedGame =
+            await saveGameToLibrary(
+              normalized
+            );
+
+          game.gameConfig =
+            savedGame;
+
+          resetGameForConfig(
+            game
+          );
+
+          console.log(
+            `Saved to library: ${savedGame.title}`
+          );
+
+          socket.emit(
+            "library_message",
+            {
+              message:
+                `"${savedGame.title}" saved ✓`,
+            }
+          );
+
+          sendGameState(
+            game.instanceId
+          );
+
+          await sendLibrary(
+            socket
+          );
+        } catch (error) {
+          console.error(
+            "Could not save game:",
+            error
+          );
+
+          socket.emit(
+            "library_error",
+            {
+              message:
+                "Could not save this game.",
+            }
+          );
+        }
+      }
+    );
+
+
+    socket.on(
+      "load_saved_game",
+
+      async (id) => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          ) ||
+          game.phase !==
+            "lobby"
+        ) {
+          return;
+        }
+
+        try {
+          const savedGame =
+            await loadGameFromLibrary(
+              id
+            );
+
+          if (
+            !savedGame
+          ) {
+            socket.emit(
+              "library_error",
+              {
+                message:
+                  "Saved game not found.",
+              }
+            );
+
+            return;
+          }
+
+          const normalized =
+            normalizeGameConfig(
+              savedGame
+            );
+
+          if (
+            !normalized
+          ) {
+            socket.emit(
+              "library_error",
+              {
+                message:
+                  "That saved game is invalid.",
+              }
+            );
+
+            return;
+          }
+
+          game.gameConfig = {
+            ...normalized,
+
+            id:
+              savedGame.id,
+          };
+
+          resetGameForConfig(
+            game
+          );
+
+          console.log(
+            `Loaded game: ${savedGame.title}`
+          );
+
+          socket.emit(
+            "library_message",
+            {
+              message:
+                `"${savedGame.title}" loaded ✓`,
+            }
+          );
+
+          sendGameState(
+            game.instanceId
+          );
+        } catch (error) {
+          console.error(
+            "Could not load game:",
+            error
+          );
+
+          socket.emit(
+            "library_error",
+            {
+              message:
+                "Could not load this game.",
+            }
+          );
+        }
+      }
+    );
+
+
+    socket.on(
+      "delete_saved_game",
+
+      async (id) => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          ) ||
+          game.phase !==
+            "lobby"
+        ) {
+          return;
+        }
+
+        try {
+          const deleted =
+            await deleteGameFromLibrary(
+              id
+            );
+
+          if (
+            !deleted
+          ) {
+            socket.emit(
+              "library_error",
+              {
+                message:
+                  "Saved game not found.",
+              }
+            );
+
+            return;
+          }
+
+          console.log(
+            `Deleted saved game: ${id}`
+          );
+
+          socket.emit(
+            "library_message",
+            {
+              message:
+                "Saved game deleted.",
+            }
+          );
+
+          await sendLibrary(
+            socket
+          );
+        } catch (error) {
+          console.error(
+            "Could not delete game:",
+            error
+          );
+
+          socket.emit(
+            "library_error",
+            {
+              message:
+                "Could not delete this game.",
+            }
+          );
+        }
+      }
+    );
+
+
+    /*
+     * -----------------------------
+     * SAVE CURRENT CONFIG
+     * -----------------------------
+     */
+
+    socket.on(
+      "save_game_config",
+
+      (rawConfig) => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          ) ||
+          game.phase !==
+            "lobby"
+        ) {
+          return;
+        }
+
+        const gameConfig =
+          normalizeGameConfig(
+            rawConfig
+          );
+
+        if (
+          !gameConfig
+        ) {
+          socket.emit(
+            "editor_error",
+            {
+              message:
+                "BuzzBoard requires exactly 6 categories with 5 clues each.",
+            }
+          );
+
+          return;
+        }
+
+        game.gameConfig =
+          gameConfig;
+
+        resetGameForConfig(
+          game
+        );
+
+        console.log(
+          `Game saved in session: ${gameConfig.title}`
+        );
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+
+
+    /*
+     * -----------------------------
+     * START GAME
+     * -----------------------------
+     */
+
+    socket.on(
+      "start_game",
+
+      () => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          ) ||
+          !game.gameConfig
+        ) {
+          return;
+        }
+
+        resetRound(
+          game
+        );
+
+        game.phase =
+          "board";
+
+        console.log(
+          `Game started: ${game.instanceId}`
+        );
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+
+
+    /*
+     * -----------------------------
+     * CLUE SELECTION
+     * -----------------------------
+     */
+
+    socket.on(
+      "select_clue",
+
+      ({
+        categoryId,
+        clueId,
+      }) => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          ) ||
+          game.phase !==
+            "board" ||
+          game.usedClues.has(
+            clueId
+          )
+        ) {
+          return;
+        }
+
+        const result =
+          getClue(
+            game,
+            categoryId,
+            clueId
+          );
+
+        if (!result) {
+          return;
+        }
+
+        const {
+          category,
+          clue,
+        } =
+          result;
+
+        saveUndoSnapshot(
+          game,
+          "Clue selection"
+        );
+        game.currentClue = {
+          categoryId:
+            category.id,
+
+          categoryName:
+            category.name,
+
+          clueId:
+            clue.id,
+
+          value:
+            clue.value,
+
+          question:
+            clue.question,
+
+          answer:
+            clue.answer,
+
+          dailyDouble:
+            clue.dailyDouble ===
+            true,
+        };
+
+        resetBuzzer(
+          game
+        );
+
+        resetDailyDouble(
+          game
+        );
+
+        if (
+          clue.dailyDouble ===
+          true
+        ) {
+          game.phase =
+            "daily_double_select";
+
+          console.log(
+            `DAILY DOUBLE selected: ${category.name} $${clue.value}`
+          );
+        } else {
+          game.phase =
+            "clue";
+
+          console.log(
+            `Clue selected: ${category.name} $${clue.value}`
+          );
+        }
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+
+
+    /*
+     * -----------------------------
+     * DAILY DOUBLE
+     * -----------------------------
+     */
+
+    socket.on(
+      "select_daily_double_player",
+
+      (playerId) => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          ) ||
+          game.phase !==
+            "daily_double_select" ||
+          !game.currentClue ||
+          game.currentClue
+            .dailyDouble !==
+            true ||
+          !game.players.has(
+            playerId
+          )
+        ) {
+          return;
+        }
+
+        saveUndoSnapshot(
+          game,
+          "Daily Double contestant"
+        );
+        game.dailyDouble.playerId =
+          playerId;
+
+        game.dailyDouble.wager =
+          null;
+
+        game.dailyDouble.wagerLocked =
+          false;
+
+        game.phase =
+          "daily_double_wager";
+
+        const player =
+          game.players.get(
+            playerId
+          );
+
+        console.log(
+          `Daily Double contestant: ${player?.name ?? playerId}`
+        );
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+
+
+    socket.on(
+      "submit_daily_double_wager",
+
+      (rawWager) => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        const playerId =
+          socket.data
+            .playerId;
+
+        if (
+          !game ||
+          game.phase !==
+            "daily_double_wager" ||
+          game.dailyDouble
+            .playerId !==
+            playerId ||
+          game.dailyDouble
+            .wagerLocked
+        ) {
+          return;
+        }
+
+        const player =
+          game.players.get(
+            playerId
+          );
+
+        if (!player) {
+          return;
+        }
+
+        const numericWager =
+          Number(
+            rawWager
+          );
+
+        if (
+          !Number.isFinite(
+            numericWager
+          )
+        ) {
+          return;
+        }
+
+        const maxWager =
+          getDailyDoubleMaxWager(
+            game,
+            player
+          );
+
+        const wager =
+          Math.max(
+            0,
+
+            Math.min(
+              maxWager,
+
+              Math.floor(
+                numericWager
+              )
+            )
+          );
+
+        game.dailyDouble.wager =
+          wager;
+
+        game.dailyDouble.wagerLocked =
+          true;
+
+        game.phase =
+          "daily_double_clue";
+
+        console.log(
+          `${player.name} locked Daily Double wager: $${wager}`
+        );
+
+        startDailyDoubleAnswerWindow(
+          game,
+          player
+        );
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+
+
+    socket.on(
+      "judge_daily_double_correct",
+
+      () => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          ) ||
+          game.phase !==
+            "daily_double_clue" ||
+          !game.currentClue ||
+          !game.dailyDouble
+            .wagerLocked ||
+          game.dailyDouble
+            .playerId ===
+            null
+        ) {
+          return;
+        }
+
+        const player =
+          game.players.get(
+            game.dailyDouble
+              .playerId
+          );
+
+        if (!player) {
+          return;
+        }
+
+        saveUndoSnapshot(
+          game,
+          "Daily Double correct"
+        );
+        clearAnswerCountdown(
+          game
+        );
+
+        const wager =
+          game.dailyDouble
+            .wager ??
+          0;
+
+        player.score +=
+          wager;
+
+        console.log(
+          `${player.name} DAILY DOUBLE CORRECT +$${wager}`
+        );
+
+        finishClue(
+          game
+        );
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+
+
+    socket.on(
+      "judge_daily_double_incorrect",
+
+      () => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          ) ||
+          game.phase !==
+            "daily_double_clue" ||
+          !game.currentClue ||
+          !game.dailyDouble
+            .wagerLocked ||
+          game.dailyDouble
+            .playerId ===
+            null
+        ) {
+          return;
+        }
+
+        const player =
+          game.players.get(
+            game.dailyDouble
+              .playerId
+          );
+
+        if (!player) {
+          return;
+        }
+
+        saveUndoSnapshot(
+          game,
+          "Daily Double incorrect"
+        );
+        clearAnswerCountdown(
+          game
+        );
+
+        const wager =
+          game.dailyDouble
+            .wager ??
+          0;
+
+        player.score -=
+          wager;
+
+        console.log(
+          `${player.name} DAILY DOUBLE INCORRECT -$${wager}`
+        );
+
+        finishClue(
+          game
+        );
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+
+
+    /*
+     * -----------------------------
+     * NORMAL BUZZER
+     * -----------------------------
+     */
+
+    socket.on(
+      "open_buzzer",
+
+      () => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          ) ||
+          game.phase !==
+            "clue"
+        ) {
+          return;
+        }
+
+        saveUndoSnapshot(
+          game,
+          "Open buzzers"
+        );
+        startBuzzerWindow(
+          game
+        );
+
+        console.log(
+          `Buzzers opened: ${game.instanceId}`
+        );
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+
+
+    socket.on(
+      "buzz",
+
+      () => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        const playerId =
+          socket.data
+            .playerId;
+
+        if (
+          !game ||
+          game.phase !==
+            "clue" ||
+          !game.buzzer.open ||
+          game.buzzer.winner ||
+          game.buzzer
+            .lockedOut
+            .has(
+              playerId
+            )
+        ) {
+          return;
+        }
+
+        const player =
+          game.players.get(
+            playerId
+          );
+
+        if (!player) {
+          return;
+        }
+
+        game.buzzer.winner = {
+          playerId:
+            player.id,
+
+          name:
+            player.name,
+
+          receivedAt:
+            Date.now(),
+        };
+
+        game.buzzer.open =
+          false;
+
+        console.log(
+          `BUZZ WINNER: ${player.name}`
+        );
+
+        startNormalAnswerWindow(
+          game,
+          player
+        );
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+
+
+    socket.on(
+      "judge_correct",
+
+      () => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          ) ||
+          !game.currentClue ||
+          !game.buzzer
+            .winner
+        ) {
+          return;
+        }
+
+        const winner =
+          game.players.get(
+            game.buzzer
+              .winner
+              .playerId
+          );
+
+        if (!winner) {
+          return;
+        }
+
+        saveUndoSnapshot(
+          game,
+          "Correct ruling"
+        );
+        clearAnswerCountdown(
+          game
+        );
+
+        winner.score +=
+          game.currentClue
+            .value;
+
+        console.log(
+          `${winner.name} CORRECT +$${game.currentClue.value}`
+        );
+
+        finishClue(
+          game
+        );
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+
+
+    socket.on(
+      "judge_incorrect",
+
+      () => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          ) ||
+          !game.currentClue ||
+          !game.buzzer
+            .winner
+        ) {
+          return;
+        }
+
+        const wrongPlayerId =
+          game.buzzer
+            .winner
+            .playerId;
+
+        saveUndoSnapshot(
+          game,
+          "Incorrect ruling"
+        );
+        applyNormalIncorrect(
+          game,
+          wrongPlayerId,
+          "INCORRECT"
+        );
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+
+
+    socket.on(
+      "no_correct_answer",
+
+      () => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          ) ||
+          game.phase !==
+            "clue"
+        ) {
+          return;
+        }
+
+        console.log(
+          `No correct answer: ${game.instanceId}`
+        );
+
+        saveUndoSnapshot(
+          game,
+          "End clue"
+        );
+        finishClue(
+          game
+        );
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+
+
+    /*
+     * -----------------------------
+     * HOST TOOLS
+     * -----------------------------
+     */
+
+    socket.on(
+      "adjust_score",
+
+      ({
+        playerId,
+        amount,
+      }) => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          )
+        ) {
+          return;
+        }
+
+        const player =
+          game.players.get(
+            playerId
+          );
+
+        const numericAmount =
+          Number(
+            amount
+          );
+
+        if (
+          !player ||
+          !Number.isFinite(
+            numericAmount
+          )
+        ) {
+          return;
+        }
+
+        const safeAmount =
+          Math.max(
+            -100_000,
+
+            Math.min(
+              100_000,
+
+              Math.trunc(
+                numericAmount
+              )
+            )
+          );
+
+        if (
+          safeAmount ===
+          0
+        ) {
+          return;
+        }
+
+        saveUndoSnapshot(
+          game,
+          "Score adjustment"
+        );
+
+        player.score +=
+          safeAmount;
+
+        console.log(
+          `HOST SCORE ADJUST: ${player.name} ${safeAmount >= 0 ? "+" : ""}${safeAmount}`
+        );
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+
+
+    socket.on(
+      "reopen_buzzers",
+
+      () => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          ) ||
+          game.phase !==
+            "clue" ||
+          !game.currentClue
+        ) {
+          return;
+        }
+
+        const eligiblePlayers =
+          Array.from(
+            game.players.values()
+          ).filter(
+            (player) =>
+              !game.buzzer
+                .lockedOut
+                .has(
+                  player.id
+                )
+          );
+
+        if (
+          eligiblePlayers.length ===
+          0
+        ) {
+          return;
+        }
+
+        saveUndoSnapshot(
+          game,
+          "Reopen buzzers"
+        );
+
+        clearAnswerCountdown(
+          game
+        );
+
+        game.buzzer.winner =
+          null;
+
+        startBuzzerWindow(
+          game
+        );
+
+        console.log(
+          `HOST REOPENED BUZZERS: ${game.instanceId}`
+        );
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+
+
+    socket.on(
+      "skip_clue",
+
+      () => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        const skippablePhases =
+          new Set([
+            "clue",
+            "daily_double_select",
+            "daily_double_wager",
+            "daily_double_clue",
+          ]);
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          ) ||
+          !game.currentClue ||
+          !skippablePhases.has(
+            game.phase
+          )
+        ) {
+          return;
+        }
+
+        saveUndoSnapshot(
+          game,
+          "Skip clue"
+        );
+
+        console.log(
+          `HOST SKIPPED CLUE: ${game.instanceId}`
+        );
+
+        finishClue(
+          game
+        );
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+
+
+    socket.on(
+      "undo_last_action",
+
+      () => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          ) ||
+          !game.undoSnapshot
+        ) {
+          return;
+        }
+
+        const label =
+          game.undoSnapshot
+            .label;
+
+        const restored =
+          restoreUndoSnapshot(
+            game
+          );
+
+        if (!restored) {
+          return;
+        }
+
+        console.log(
+          `HOST UNDO: ${label}`
+        );
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+    /*
+     * -----------------------------
+     * FINAL ROUND
+     * -----------------------------
+     */
+
+    socket.on(
+      "submit_final_wager",
+
+      (rawWager) => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        const player =
+          game?.players.get(
+            socket.data
+              .playerId
+          );
+
+        if (
+          !game ||
+          !player ||
+          game.phase !==
+            "final_wager"
+        ) {
+          return;
+        }
+
+        const submission =
+          getOrCreateFinalSubmission(
+            game,
+            player.id
+          );
+
+        if (
+          submission
+            .wagerLocked
+        ) {
+          return;
+        }
+
+        const maxWager =
+          Math.max(
+            0,
+
+            Math.floor(
+              player.score
+            )
+          );
+
+        const numericWager =
+          Number(
+            rawWager
+          );
+
+        if (
+          !Number.isFinite(
+            numericWager
+          )
+        ) {
+          return;
+        }
+
+        const wager =
+          Math.max(
+            0,
+
+            Math.min(
+              maxWager,
+
+              Math.floor(
+                numericWager
+              )
+            )
+          );
+
+        submission.wager =
+          wager;
+
+        submission.wagerLocked =
+          true;
+
+        console.log(
+          `${player.name} locked Final wager`
+        );
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+
+
+    socket.on(
+      "reveal_final_clue",
+
+      () => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          ) ||
+          game.phase !==
+            "final_wager" ||
+          !allPlayersHaveLockedWagers(
+            game
+          )
+        ) {
+          return;
+        }
+
+        game.phase =
+          "final_clue";
+
+        console.log(
+          `Final clue revealed: ${game.instanceId}`
+        );
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+
+
+    socket.on(
+      "submit_final_answer",
+
+      (rawAnswer) => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        const player =
+          game?.players.get(
+            socket.data
+              .playerId
+          );
+
+        if (
+          !game ||
+          !player ||
+          game.phase !==
+            "final_clue"
+        ) {
+          return;
+        }
+
+        const submission =
+          getOrCreateFinalSubmission(
+            game,
+            player.id
+          );
+
+        if (
+          submission
+            .answerLocked
+        ) {
+          return;
+        }
+
+        submission.answer =
+          cleanText(
+            rawAnswer
+          );
+
+        submission.answerLocked =
+          true;
+
+        console.log(
+          `${player.name} locked Final answer`
+        );
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+
+
+    socket.on(
+      "reveal_final_answers",
+
+      () => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          ) ||
+          game.phase !==
+            "final_clue" ||
+          !allPlayersHaveLockedAnswers(
+            game
+          )
+        ) {
+          return;
+        }
+
+        game.phase =
+          "final_reveal";
+
+        game.finalRound
+          .answersRevealed =
+          true;
+
+        console.log(
+          `Final answers revealed: ${game.instanceId}`
+        );
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+
+
+    socket.on(
+      "judge_final_answer",
+
+      ({
+        playerId,
+        correct,
+      }) => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          ) ||
+          game.phase !==
+            "final_reveal"
+        ) {
+          return;
+        }
+
+        const player =
+          game.players.get(
+            playerId
+          );
+
+        const submission =
+          game.finalRound
+            .submissions
+            .get(
+              playerId
+            );
+
+        if (
+          !player ||
+          !submission ||
+          submission.judged !==
+            null
+        ) {
+          return;
+        }
+
+        saveUndoSnapshot(
+          game,
+          "Final Round ruling"
+        );
+        const wager =
+          submission.wager ??
+          0;
+
+        submission.judged =
+          Boolean(
+            correct
+          );
+
+        if (
+          submission.judged
+        ) {
+          player.score +=
+            wager;
+
+          console.log(
+            `${player.name} FINAL CORRECT +$${wager}`
+          );
+        } else {
+          player.score -=
+            wager;
+
+          console.log(
+            `${player.name} FINAL INCORRECT -$${wager}`
+          );
+        }
+
+        if (
+          allFinalAnswersJudged(
+            game
+          )
+        ) {
+          game.phase =
+            "finished";
+
+          console.log(
+            `Game finished: ${game.instanceId}`
+          );
+        }
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+
+
+    /*
+     * -----------------------------
+     * RETURN TO LOBBY
+     * -----------------------------
+     */
+
+    socket.on(
+      "return_to_lobby",
+
+      () => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          )
+        ) {
+          return;
+        }
+
+        resetRound(
+          game
+        );
+
+        game.phase =
+          "lobby";
+
+        console.log(
+          `Returned to lobby: ${game.instanceId}`
+        );
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+
+
+    /*
+     * -----------------------------
+     * DISCONNECT / HOST HANDOFF
+     * -----------------------------
+     */
+
+    socket.on(
+      "disconnect",
+
+      () => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        const playerId =
+          socket.data
+            .playerId;
+
+        if (!game) {
+          return;
+        }
+
+        /*
+         * Never let undo resurrect a
+         * player who has disconnected.
+         */
+        game.undoSnapshot =
+          null;
+
+        const wasBuzzWinner =
+          game.buzzer
+            .winner
+            ?.playerId ===
+          playerId;
+
+        game.players.delete(
+          playerId
+        );
+
+        game.finalRound
+          .submissions
+          .delete(
+            playerId
+          );
+
+        if (
+          game.dailyDouble
+            .playerId ===
+          playerId &&
+          (
+            game.phase ===
+              "daily_double_wager" ||
+            game.phase ===
+              "daily_double_clue"
+          )
+        ) {
+          clearAnswerCountdown(
+            game
+          );
+
+          resetDailyDouble(
+            game
+          );
+
+          game.phase =
+            "daily_double_select";
+        }
+
+        if (
+          wasBuzzWinner &&
+          game.phase ===
+            "clue"
+        ) {
+          clearAnswerCountdown(
+            game
+          );
+
+          game.buzzer.winner =
+            null;
+
+          const eligiblePlayers =
+            Array.from(
+              game.players.values()
+            ).filter(
+              (player) =>
+                !game.buzzer
+                  .lockedOut
+                  .has(
+                    player.id
+                  )
+            );
+
+          if (
+            eligiblePlayers.length >
+            0
+          ) {
+            startBuzzerWindow(
+              game
+            );
+          } else {
+            game.buzzer.open =
+              false;
+          }
+        }
+
+        if (
+          game.players.size ===
+          0
+        ) {
+          clearAllGameTimers(
+            game
+          );
+
+          games.delete(
+            game.instanceId
+          );
+
+          return;
+        }
+
+        if (
+          game.hostId ===
+          playerId
+        ) {
+          const nextHost =
+            game.players
+              .values()
+              .next()
+              .value;
+
+          if (nextHost) {
+            game.hostId =
+              nextHost.id;
+
+            console.log(
+              `New host: ${nextHost.name}`
+            );
+          }
+        }
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+  }
+);
+
+
+/*
+ * --------------------------------
+ * START SERVER
+ * --------------------------------
+ */
+
+httpServer.listen(
+  port,
+
+  () => {
+    console.log(
+      `BuzzBoard server running on http://localhost:${port}`
+    );
+
+    console.log(
+      `Timers: buzz ${BUZZ_WINDOW_MS / 1000}s, answer ${ANSWER_WINDOW_MS / 1000}s, Daily Double ${DAILY_DOUBLE_ANSWER_MS / 1000}s`
+    );
+
+    if (
+      TEST_CLUE_LIMIT !==
+      null
+    ) {
+      console.log(
+        `TEST MODE: normal board enters Final Round after ${TEST_CLUE_LIMIT} clues`
+      );
+    }
+  }
+);

@@ -1,0 +1,25 @@
+# Secrets
+**/.env
+**/.env.*
+**/*.env
+
+# Dependencies / local builds
+**/node_modules
+**/dist
+
+# Local BuzzBoard saves
+server/data
+
+# Backups / temporary files
+**/*.before-deploy
+**/*.before-feedback
+**/*.new
+
+# Editor / OS clutter
+.vscode
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
