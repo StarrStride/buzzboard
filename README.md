@@ -5,3 +5,5 @@ BuzzBoard is a Discord Activity game-show app with synchronized multiplayer, hos
 ## Deployment
 
 Production is hosted on Railway and automatically deploys from the `main` branch.
+
+Automatic deployments verified through Railway.
