@@ -66,7 +66,17 @@ type FinalRoundConfig = {
 type GameConfig = {
   id?: string;
   title: string;
+
+  /*
+   * Round 1 keeps the original
+   * categories property so existing
+   * saved games remain compatible.
+   */
   categories: EditorCategory[];
+
+  round2Categories:
+    EditorCategory[];
+
   finalRound: FinalRoundConfig;
 };
 
@@ -188,10 +198,14 @@ type GameState = {
     | "daily_double_select"
     | "daily_double_wager"
     | "daily_double_clue"
+    | "round_break"
     | "final_wager"
     | "final_clue"
     | "final_reveal"
     | "finished";
+
+  currentRound:
+    1 | 2;
 
   players: Player[];
 
@@ -286,61 +300,94 @@ type FeedbackState = {
  * --------------------------------
  */
 
+function createBlankCategories(
+  round:
+    1 | 2
+): EditorCategory[] {
+  const multiplier =
+    round ===
+      2
+      ? 200
+      : 100;
+
+  const prefix =
+    round ===
+      2
+      ? "r2-c"
+      : "c";
+
+  const label =
+    round ===
+      2
+      ? "Round 2 Category"
+      : "Category";
+
+  return Array.from(
+    {
+      length: 6,
+    },
+
+    (
+      _,
+      categoryIndex
+    ) => ({
+      id:
+        `${prefix}${categoryIndex}`,
+
+      name:
+        `${label} ${
+          categoryIndex +
+          1
+        }`,
+
+      clues:
+        Array.from(
+          {
+            length: 5,
+          },
+
+          (
+            _,
+            clueIndex
+          ) => ({
+            id:
+              `${prefix}${categoryIndex}-q${clueIndex}`,
+
+            value:
+              (
+                clueIndex +
+                1
+              ) *
+              multiplier,
+
+            question:
+              "",
+
+            answer:
+              "",
+
+            dailyDouble:
+              false,
+          })
+        ),
+    })
+  );
+}
+
+
 function createBlankGameConfig(): GameConfig {
   return {
     title:
       "My BuzzBoard Game",
 
     categories:
-      Array.from(
-        {
-          length: 6,
-        },
+      createBlankCategories(
+        1
+      ),
 
-        (
-          _,
-          categoryIndex
-        ) => ({
-          id:
-            `c${categoryIndex}`,
-
-          name:
-            `Category ${
-              categoryIndex +
-              1
-            }`,
-
-          clues:
-            Array.from(
-              {
-                length: 5,
-              },
-
-              (
-                _,
-                clueIndex
-              ) => ({
-                id:
-                  `c${categoryIndex}-q${clueIndex}`,
-
-                value:
-                  (
-                    clueIndex +
-                    1
-                  ) *
-                  100,
-
-                question:
-                  "",
-
-                answer:
-                  "",
-
-                dailyDouble:
-                  false,
-              })
-            ),
-        })
+    round2Categories:
+      createBlankCategories(
+        2
       ),
 
     finalRound: {
@@ -363,6 +410,9 @@ const initialGameState: GameState = {
 
   phase:
     "lobby",
+
+  currentRound:
+    1,
 
   players:
     [],
@@ -2732,30 +2782,42 @@ function App() {
       number,
 
     name:
-      string
+      string,
+
+    round:
+      1 | 2 =
+      1
   ) {
+    const categoryKey:
+      | "categories"
+      | "round2Categories" =
+        round ===
+          2
+          ? "round2Categories"
+          : "categories";
+
     setEditorConfig(
       (
         current
       ) => ({
         ...current,
 
-        categories:
-          current
-            .categories
-            .map(
-              (
-                category,
-                index
-              ) =>
-                index ===
-                categoryIndex
-                  ? {
-                      ...category,
-                      name,
-                    }
-                  : category
-            ),
+        [categoryKey]:
+          current[
+            categoryKey
+          ].map(
+            (
+              category,
+              index
+            ) =>
+              index ===
+              categoryIndex
+                ? {
+                    ...category,
+                    name,
+                  }
+                : category
+          ),
       })
     );
 
@@ -2775,53 +2837,65 @@ function App() {
       | "answer",
 
     value:
-      string
+      string,
+
+    round:
+      1 | 2 =
+      1
   ) {
+    const categoryKey:
+      | "categories"
+      | "round2Categories" =
+        round ===
+          2
+          ? "round2Categories"
+          : "categories";
+
     setEditorConfig(
       (
         current
       ) => ({
         ...current,
 
-        categories:
-          current
-            .categories
-            .map(
-              (
-                category,
-                currentCategoryIndex
-              ) => {
-                if (
-                  currentCategoryIndex !==
-                  categoryIndex
-                ) {
-                  return category;
-                }
-
-                return {
-                  ...category,
-
-                  clues:
-                    category
-                      .clues
-                      .map(
-                        (
-                          clue,
-                          currentClueIndex
-                        ) =>
-                          currentClueIndex ===
-                          clueIndex
-                            ? {
-                                ...clue,
-
-                                [field]:
-                                  value,
-                              }
-                            : clue
-                      ),
-                };
+        [categoryKey]:
+          current[
+            categoryKey
+          ].map(
+            (
+              category,
+              currentCategoryIndex
+            ) => {
+              if (
+                currentCategoryIndex !==
+                categoryIndex
+              ) {
+                return category;
               }
-            ),
+
+              return {
+                ...category,
+
+                clues:
+                  category
+                    .clues
+                    .map(
+                      (
+                        clue,
+                        currentClueIndex
+                      ) =>
+                        currentClueIndex ===
+                        clueIndex
+                          ? {
+                              ...clue,
+
+                              [field]:
+                                value,
+                            }
+                          : clue
+                    ),
+              };
+            }
+          ),
       })
     );
 
@@ -2834,59 +2908,282 @@ function App() {
       number,
 
     clueIndex:
-      number
+      number,
+
+    round:
+      1 | 2 =
+      1
   ) {
+    const categoryKey:
+      | "categories"
+      | "round2Categories" =
+        round ===
+          2
+          ? "round2Categories"
+          : "categories";
+
     setEditorConfig(
       (
         current
       ) => ({
         ...current,
 
-        categories:
-          current
-            .categories
-            .map(
-              (
-                category,
-                currentCategoryIndex
-              ) => {
-                if (
-                  currentCategoryIndex !==
-                  categoryIndex
-                ) {
-                  return category;
-                }
-
-                return {
-                  ...category,
-
-                  clues:
-                    category
-                      .clues
-                      .map(
-                        (
-                          clue,
-                          currentClueIndex
-                        ) =>
-                          currentClueIndex ===
-                          clueIndex
-                            ? {
-                                ...clue,
-
-                                dailyDouble:
-                                  !clue.dailyDouble,
-                              }
-                            : clue
-                      ),
-                };
+        [categoryKey]:
+          current[
+            categoryKey
+          ].map(
+            (
+              category,
+              currentCategoryIndex
+            ) => {
+              if (
+                currentCategoryIndex !==
+                categoryIndex
+              ) {
+                return category;
               }
-            ),
+
+              return {
+                ...category,
+
+                clues:
+                  category
+                    .clues
+                    .map(
+                      (
+                        clue,
+                        currentClueIndex
+                      ) =>
+                        currentClueIndex ===
+                        clueIndex
+                          ? {
+                              ...clue,
+
+                              dailyDouble:
+                                !clue.dailyDouble,
+                            }
+                          : clue
+                    ),
+              };
+            }
+          ),
       })
     );
 
     setDirty();
   }
 
+
+  function renderRoundEditor(
+    round:
+      1 | 2,
+
+    categories:
+      EditorCategory[]
+  ) {
+    const isRoundTwo =
+      round ===
+        2;
+
+    const valueLabel =
+      isRoundTwo
+        ? "$200 • $400 • $600 • $800 • $1000"
+        : "$100 • $200 • $300 • $400 • $500";
+
+    return (
+      <div
+        className={
+          isRoundTwo
+            ? "round-editor-block round-editor-block-two"
+            : "round-editor-block round-editor-block-one"
+        }
+      >
+        <div className="round-editor-heading">
+          <div>
+            <span>
+              {isRoundTwo
+                ? "ROUND 2"
+                : "ROUND 1"}
+            </span>
+
+            <h3>
+              {isRoundTwo
+                ? "Round 2"
+                : "Round 1"}
+            </h3>
+
+            <p>
+              {isRoundTwo
+                ? "Double-value board"
+                : "Opening board"}
+            </p>
+          </div>
+
+          <strong>
+            {valueLabel}
+          </strong>
+        </div>
+
+        <div className="editor-categories">
+          {categories.map(
+            (
+              category,
+              categoryIndex
+            ) => (
+              <div
+                className="editor-category"
+                key={
+                  category.id
+                }
+              >
+                <label className="category-name-field">
+                  <span>
+                    Category{" "}
+                    {categoryIndex +
+                      1}
+                  </span>
+
+                  <input
+                    type="text"
+                    maxLength={
+                      100
+                    }
+                    value={
+                      category.name
+                    }
+                    onChange={(
+                      event
+                    ) =>
+                      updateCategoryName(
+                        categoryIndex,
+
+                        event
+                          .target
+                          .value,
+
+                        round
+                      )
+                    }
+                  />
+                </label>
+
+                <div className="editor-clues">
+                  {category
+                    .clues
+                    .map(
+                      (
+                        clue,
+                        clueIndex
+                      ) => (
+                        <div
+                          className="editor-clue"
+                          key={
+                            clue.id
+                          }
+                        >
+                          <h3>
+                            $
+                            {
+                              clue.value
+                            }
+                          </h3>
+
+                          <label className="daily-double-toggle">
+                            <input
+                              type="checkbox"
+                              checked={
+                                clue.dailyDouble
+                              }
+                              onChange={() =>
+                                toggleDailyDouble(
+                                  categoryIndex,
+                                  clueIndex,
+                                  round
+                                )
+                              }
+                            />
+
+                            <span>
+                              ✨ Daily Double
+                            </span>
+                          </label>
+
+                          <label>
+                            <span>
+                              Clue
+                            </span>
+
+                            <textarea
+                              rows={
+                                3
+                              }
+                              maxLength={
+                                500
+                              }
+                              value={
+                                clue.question
+                              }
+                              onChange={(
+                                event
+                              ) =>
+                                updateClue(
+                                  categoryIndex,
+                                  clueIndex,
+                                  "question",
+
+                                  event
+                                    .target
+                                    .value,
+
+                                  round
+                                )
+                              }
+                            />
+                          </label>
+
+                          <label>
+                            <span>
+                              Answer
+                            </span>
+
+                            <textarea
+                              rows={
+                                2
+                              }
+                              maxLength={
+                                500
+                              }
+                              value={
+                                clue.answer
+                              }
+                              onChange={(
+                                event
+                              ) =>
+                                updateClue(
+                                  categoryIndex,
+                                  clueIndex,
+                                  "answer",
+
+                                  event
+                                    .target
+                                    .value,
+
+                                  round
+                                )
+                              }
+                            />
+                          </label>
+                        </div>
+                      )
+                    )}
+                </div>
+              </div>
+            )
+          )}
+        </div>
+      </div>
+    );
+  }
 
   /*
    * --------------------------------
@@ -3018,6 +3315,14 @@ function App() {
     socketRef.current
       ?.emit(
         "start_game"
+      );
+  }
+
+
+  function startRoundTwo() {
+    socketRef.current
+      ?.emit(
+        "start_round_2"
       );
   }
 
@@ -4932,6 +5237,76 @@ function App() {
 
   /*
    * ================================================
+   * ROUND BREAK
+   * ================================================
+   */
+
+  if (
+    gameState.phase ===
+      "round_break"
+  ) {
+    return (
+      <main className="game round-break-page">
+        <h1>
+          Round 1 Complete!
+        </h1>
+
+        <p>
+          Scores carry forward into
+          Round 2.
+        </p>
+
+        {scoreboard}
+
+        <section className="round-break-screen">
+          <div className="round-break-label">
+            ✨ ROUND 1 COMPLETE ✨
+          </div>
+
+          <h2>
+            Round 2 is Ready
+          </h2>
+
+          <p>
+            The board resets, but every
+            player's score stays exactly
+            where it is.
+          </p>
+
+          <div className="round-break-values">
+            <span>
+              ROUND 2 CLUE VALUES
+            </span>
+
+            <strong>
+              $200 • $400 • $600 • $800 • $1000
+            </strong>
+          </div>
+
+          {isHost ? (
+            <button
+              type="button"
+              className="round-two-start-button"
+              onClick={
+                startRoundTwo
+              }
+            >
+              Start Round 2
+            </button>
+          ) : (
+            <p className="round-break-waiting">
+              Waiting for the host to
+              start Round 2...
+            </p>
+          )}
+        </section>
+      </main>
+    );
+  }
+
+
+  /*
+   * ================================================
    * NORMAL CLUE
    * ================================================
    */
@@ -5199,11 +5574,30 @@ function App() {
           }
         </h1>
 
-        <p>
-          BuzzBoard
-        </p>
+        <div
+          className={
+            gameState.currentRound ===
+              2
+              ? "round-board-banner round-board-banner-two"
+              : "round-board-banner round-board-banner-one"
+          }
+        >
+          <span>
+            ROUND{" "}
+            {
+              gameState
+                .currentRound
+            }
+          </span>
 
-        {soundToggle}
+          <strong>
+            {gameState
+              .currentRound ===
+            2
+              ? "$200 • $400 • $600 • $800 • $1000"
+              : "$100 • $200 • $300 • $400 • $500"}
+          </strong>
+        </div>
 
         {scoreboard}
 
@@ -5535,11 +5929,11 @@ function App() {
                 </h2>
 
                 <p>
-                  Create six
-                  categories with
-                  five clues each,
-                  plus one Final
-                  Round.
+                  Build Round 1 and
+                  Round 2 with six
+                  categories and five
+                  clues each, plus
+                  one Final Round.
                 </p>
               </div>
 
@@ -5580,161 +5974,22 @@ function App() {
 
 
             {/*
-             * NORMAL CATEGORIES
+             * -----------------------------
+             * ROUND 1 + ROUND 2
+             * -----------------------------
              */}
 
-            <div className="editor-categories">
-              {editorConfig
+            {renderRoundEditor(
+              1,
+              editorConfig
                 .categories
-                .map(
-                  (
-                    category,
-                    categoryIndex
-                  ) => (
-                    <div
-                      className="editor-category"
-                      key={
-                        category.id
-                      }
-                    >
-                      <label className="category-name-field">
-                        <span>
-                          Category{" "}
-                          {categoryIndex +
-                            1}
-                        </span>
+            )}
 
-                        <input
-                          type="text"
-                          maxLength={
-                            100
-                          }
-                          value={
-                            category.name
-                          }
-                          onChange={(
-                            event
-                          ) =>
-                            updateCategoryName(
-                              categoryIndex,
-
-                              event
-                                .target
-                                .value
-                            )
-                          }
-                        />
-                      </label>
-
-                      <div className="editor-clues">
-                        {category
-                          .clues
-                          .map(
-                            (
-                              clue,
-                              clueIndex
-                            ) => (
-                              <div
-                                className="editor-clue"
-                                key={
-                                  clue.id
-                                }
-                              >
-                                <h3>
-                                  $
-                                  {
-                                    clue.value
-                                  }
-                                </h3>
-
-                                <label className="daily-double-toggle">
-                                  <input
-                                    type="checkbox"
-                                    checked={
-                                      clue.dailyDouble
-                                    }
-                                    onChange={() =>
-                                      toggleDailyDouble(
-                                        categoryIndex,
-                                        clueIndex
-                                      )
-                                    }
-                                  />
-
-                                  <span>
-                                    ✨ Daily Double
-                                  </span>
-                                </label>
-
-                                <label>
-                                  <span>
-                                    Clue
-                                  </span>
-
-                                  <textarea
-                                    rows={
-                                      3
-                                    }
-                                    maxLength={
-                                      500
-                                    }
-                                    value={
-                                      clue.question
-                                    }
-                                    onChange={(
-                                      event
-                                    ) =>
-                                      updateClue(
-                                        categoryIndex,
-                                        clueIndex,
-                                        "question",
-
-                                        event
-                                          .target
-                                          .value
-                                      )
-                                    }
-                                  />
-                                </label>
-
-                                <label>
-                                  <span>
-                                    Answer
-                                  </span>
-
-                                  <textarea
-                                    rows={
-                                      2
-                                    }
-                                    maxLength={
-                                      500
-                                    }
-                                    value={
-                                      clue.answer
-                                    }
-                                    onChange={(
-                                      event
-                                    ) =>
-                                      updateClue(
-                                        categoryIndex,
-                                        clueIndex,
-                                        "answer",
-
-                                        event
-                                          .target
-                                          .value
-                                      )
-                                    }
-                                  />
-                                </label>
-                              </div>
-                            )
-                          )}
-                      </div>
-                    </div>
-                  )
-                )}
-            </div>
+            {renderRoundEditor(
+              2,
+              editorConfig
+                .round2Categories
+            )}
 
 
             {/*

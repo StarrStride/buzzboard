@@ -188,6 +188,9 @@ function createGame(
     phase:
       "lobby",
 
+    currentRound:
+      1,
+
     players:
       new Map(),
 
@@ -291,6 +294,9 @@ function saveUndoSnapshot(
       phase:
         game.phase,
 
+      currentRound:
+        game.currentRound,
+
       players:
         game.players,
 
@@ -337,6 +343,10 @@ function restoreUndoSnapshot(
 
   game.phase =
     snapshot.phase;
+
+  game.currentRound =
+    snapshot.currentRound ??
+    1;
 
   game.players =
     snapshot.players;
@@ -505,12 +515,13 @@ function resetDailyDouble(
 }
 
 
-function resetRound(
+function resetBoardState(
   game
 ) {
   clearAllGameTimers(
     game
   );
+
   game.undoSnapshot =
     null;
 
@@ -526,6 +537,18 @@ function resetRound(
   resetDailyDouble(
     game
   );
+}
+
+
+function resetRound(
+  game
+) {
+  resetBoardState(
+    game
+  );
+
+  game.currentRound =
+    1;
 
   resetScores(
     game
@@ -537,35 +560,60 @@ function resetRound(
 }
 
 
-function getTotalClueCount(
+function getRoundCategories(
   game
 ) {
   if (
     !game.gameConfig
-      ?.categories
   ) {
-    return 0;
+    return [];
   }
 
-  return (
-    game.gameConfig.categories.reduce(
-      (
-        total,
-        category
-      ) =>
-        total +
-        (
-          Array.isArray(
-            category.clues
-          )
-            ? category
-                .clues
-                .length
-            : 0
-        ),
-
-      0
+  if (
+    game.currentRound ===
+      2
+  ) {
+    return Array.isArray(
+      game.gameConfig
+        .round2Categories
     )
+      ? game.gameConfig
+          .round2Categories
+      : [];
+  }
+
+  return Array.isArray(
+    game.gameConfig
+      .categories
+  )
+    ? game.gameConfig
+        .categories
+    : [];
+}
+
+
+function getTotalClueCount(
+  game
+) {
+  return getRoundCategories(
+    game
+  ).reduce(
+    (
+      total,
+      category
+    ) =>
+      total +
+      (
+        Array.isArray(
+          category.clues
+        )
+          ? category
+              .clues
+              .length
+          : 0
+      ),
+
+    0
   );
 }
 
@@ -573,19 +621,14 @@ function getTotalClueCount(
 function getHighestClueValue(
   game
 ) {
-  if (
-    !game.gameConfig
-      ?.categories
-  ) {
-    return 0;
-  }
-
   let highest =
     0;
 
   for (
     const category of
-    game.gameConfig.categories
+    getRoundCategories(
+      game
+    )
   ) {
     for (
       const clue of
@@ -655,6 +698,205 @@ function cleanText(
  * --------------------------------
  */
 
+function createBlankCategories(
+  roundNumber
+) {
+  const valueMultiplier =
+    roundNumber ===
+      2
+      ? 200
+      : 100;
+
+  const categoryPrefix =
+    roundNumber ===
+      2
+      ? "r2-c"
+      : "c";
+
+  const categoryLabel =
+    roundNumber ===
+      2
+      ? "Round 2 Category"
+      : "Category";
+
+  return Array.from(
+    {
+      length: 6,
+    },
+
+    (
+      _,
+      categoryIndex
+    ) => ({
+      id:
+        `${categoryPrefix}${categoryIndex}`,
+
+      name:
+        `${categoryLabel} ${
+          categoryIndex +
+          1
+        }`,
+
+      clues:
+        Array.from(
+          {
+            length: 5,
+          },
+
+          (
+            _,
+            clueIndex
+          ) => ({
+            id:
+              `${categoryPrefix}${categoryIndex}-q${clueIndex}`,
+
+            value:
+              (
+                clueIndex +
+                1
+              ) *
+              valueMultiplier,
+
+            question:
+              "",
+
+            answer:
+              "",
+
+            dailyDouble:
+              false,
+          })
+        ),
+    })
+  );
+}
+
+
+function normalizeCategories(
+  rawCategories,
+  roundNumber,
+  allowBlankFallback =
+    false
+) {
+  if (
+    !Array.isArray(
+      rawCategories
+    )
+  ) {
+    return allowBlankFallback
+      ? createBlankCategories(
+          roundNumber
+        )
+      : null;
+  }
+
+  const valueMultiplier =
+    roundNumber ===
+      2
+      ? 200
+      : 100;
+
+  const categoryPrefix =
+    roundNumber ===
+      2
+      ? "r2-c"
+      : "c";
+
+  const categoryLabel =
+    roundNumber ===
+      2
+      ? "Round 2 Category"
+      : "Category";
+
+  const categories =
+    rawCategories
+      .slice(
+        0,
+        6
+      )
+      .map(
+        (
+          category,
+          categoryIndex
+        ) => {
+          const rawClues =
+            Array.isArray(
+              category?.clues
+            )
+              ? category.clues.slice(
+                  0,
+                  5
+                )
+              : [];
+
+          const clues =
+            rawClues.map(
+              (
+                clue,
+                clueIndex
+              ) => ({
+                id:
+                  `${categoryPrefix}${categoryIndex}-q${clueIndex}`,
+
+                value:
+                  (
+                    clueIndex +
+                    1
+                  ) *
+                  valueMultiplier,
+
+                question:
+                  cleanText(
+                    clue?.question
+                  ),
+
+                answer:
+                  cleanText(
+                    clue?.answer
+                  ),
+
+                dailyDouble:
+                  clue?.dailyDouble ===
+                  true,
+              })
+            );
+
+          return {
+            id:
+              `${categoryPrefix}${categoryIndex}`,
+
+            name:
+              cleanText(
+                category?.name,
+
+                `${categoryLabel} ${
+                  categoryIndex +
+                  1
+                }`
+              ),
+
+            clues,
+          };
+        }
+      );
+
+  if (
+    categories.length !==
+      6 ||
+    categories.some(
+      (category) =>
+        category.clues
+          .length !==
+        5
+    )
+  ) {
+    return null;
+  }
+
+  return categories;
+}
+
+
 function normalizeGameConfig(
   rawConfig
 ) {
@@ -676,92 +918,37 @@ function normalizeGameConfig(
       "Untitled Game"
     );
 
-  const rawCategories =
-    Array.isArray(
-      rawConfig?.categories
-    )
-      ? rawConfig.categories.slice(
-          0,
-          6
-        )
-      : [];
-
   const categories =
-    rawCategories.map(
-      (
-        category,
-        categoryIndex
-      ) => {
-        const rawClues =
-          Array.isArray(
-            category?.clues
-          )
-            ? category.clues.slice(
-                0,
-                5
-              )
-            : [];
+    normalizeCategories(
+      rawConfig?.categories,
+      1
+    );
 
-        const clues =
-          rawClues.map(
-            (
-              clue,
-              clueIndex
-            ) => ({
-              id:
-                `c${categoryIndex}-q${clueIndex}`,
+  /*
+   * Existing saved games do not yet
+   * contain round2Categories.
+   *
+   * When that property is absent,
+   * generate a blank Round 2 board so
+   * the old game loads safely and can
+   * be upgraded in the editor.
+   */
+  const legacyRound2Missing =
+    rawConfig
+      ?.round2Categories ===
+    undefined;
 
-              value:
-                (
-                  clueIndex +
-                  1
-                ) *
-                100,
-
-              question:
-                cleanText(
-                  clue?.question
-                ),
-
-              answer:
-                cleanText(
-                  clue?.answer
-                ),
-
-              dailyDouble:
-                clue?.dailyDouble ===
-                true,
-            })
-          );
-
-        return {
-          id:
-            `c${categoryIndex}`,
-
-          name:
-            cleanText(
-              category?.name,
-
-              `Category ${
-                categoryIndex +
-                1
-              }`
-            ),
-
-          clues,
-        };
-      }
+  const round2Categories =
+    normalizeCategories(
+      rawConfig
+        ?.round2Categories,
+      2,
+      legacyRound2Missing
     );
 
   if (
-    categories.length !==
-      6 ||
-    categories.some(
-      (category) =>
-        category.clues
-          .length !==
-        5
-    )
+    !categories ||
+    !round2Categories
   ) {
     return null;
   }
@@ -801,6 +988,7 @@ function normalizeGameConfig(
 
     title,
     categories,
+    round2Categories,
     finalRound,
   };
 }
@@ -818,12 +1006,13 @@ function getClue(
   clueId
 ) {
   const category =
-    game.gameConfig
-      ?.categories.find(
-        (item) =>
-          item.id ===
-          categoryId
-      );
+    getRoundCategories(
+      game
+    ).find(
+      (item) =>
+        item.id ===
+        categoryId
+    );
 
   if (!category) {
     return null;
@@ -848,18 +1037,23 @@ function getClue(
 
 
 function makePublicBoard(
-  gameConfig
+  game
 ) {
-  if (!gameConfig) {
+  if (
+    !game.gameConfig
+  ) {
     return null;
   }
 
   return {
     title:
-      gameConfig.title,
+      game.gameConfig
+        .title,
 
     categories:
-      gameConfig.categories.map(
+      getRoundCategories(
+        game
+      ).map(
         (category) => ({
           id:
             category.id,
@@ -889,6 +1083,45 @@ function makePublicBoard(
  * --------------------------------
  */
 
+function countCategories(
+  categories
+) {
+  return Array.isArray(
+    categories
+  )
+    ? categories.length
+    : 0;
+}
+
+
+function countClues(
+  categories
+) {
+  return Array.isArray(
+    categories
+  )
+    ? categories.reduce(
+        (
+          total,
+          category
+        ) =>
+          total +
+          (
+            Array.isArray(
+              category.clues
+            )
+              ? category
+                  .clues
+                  .length
+              : 0
+          ),
+
+        0
+      )
+    : 0;
+}
+
+
 function makeLibrarySummary(
   savedGame
 ) {
@@ -904,37 +1137,22 @@ function makeLibrarySummary(
       null,
 
     categoryCount:
-      Array.isArray(
+      countCategories(
         savedGame.categories
-      )
-        ? savedGame
-            .categories
-            .length
-        : 0,
+      ) +
+      countCategories(
+        savedGame
+          .round2Categories
+      ),
 
     clueCount:
-      Array.isArray(
+      countClues(
         savedGame.categories
-      )
-        ? savedGame.categories.reduce(
-            (
-              total,
-              category
-            ) =>
-              total +
-              (
-                Array.isArray(
-                  category.clues
-                )
-                  ? category
-                      .clues
-                      .length
-                  : 0
-              ),
-
-            0
-          )
-        : 0,
+      ) +
+      countClues(
+        savedGame
+          .round2Categories
+      ),
   };
 }
 
@@ -1285,6 +1503,9 @@ function serializeGameForSocket(
     phase:
       game.phase,
 
+    currentRound:
+      game.currentRound,
+
     players:
       Array.from(
         game.players.values()
@@ -1292,7 +1513,7 @@ function serializeGameForSocket(
 
     board:
       makePublicBoard(
-        game.gameConfig
+        game
       ),
 
     editorConfig:
@@ -1833,6 +2054,29 @@ function resetGameForConfig(
 }
 
 
+function startRoundTwo(
+  game
+) {
+  /*
+   * Clear Round 1 board state without
+   * resetting any player scores.
+   */
+  resetBoardState(
+    game
+  );
+
+  game.currentRound =
+    2;
+
+  game.phase =
+    "board";
+
+  console.log(
+    `Round 2 started: ${game.instanceId}`
+  );
+}
+
+
 function startFinalRound(
   game
 ) {
@@ -1870,6 +2114,29 @@ function startFinalRound(
 
   console.log(
     `Final Round started: ${game.instanceId}`
+  );
+}
+
+
+function completeCurrentRound(
+  game
+) {
+  if (
+    game.currentRound ===
+      1
+  ) {
+    game.phase =
+      "round_break";
+
+    console.log(
+      `Round 1 complete: ${game.instanceId}`
+    );
+
+    return;
+  }
+
+  startFinalRound(
+    game
   );
 }
 
@@ -1916,7 +2183,7 @@ function finishClue(
     game.usedClues.size >=
       cluesNeededToFinish
   ) {
-    startFinalRound(
+    completeCurrentRound(
       game
     );
   } else {
@@ -2123,7 +2390,7 @@ io.on(
             "library_error",
             {
               message:
-                "BuzzBoard requires exactly 6 categories with 5 clues each.",
+                "BuzzBoard requires six categories with five clues in both Round 1 and Round 2.",
             }
           );
 
@@ -2403,7 +2670,7 @@ io.on(
             "editor_error",
             {
               message:
-                "BuzzBoard requires exactly 6 categories with 5 clues each.",
+                "BuzzBoard requires six categories with five clues in both Round 1 and Round 2.",
             }
           );
 
@@ -2464,7 +2731,53 @@ io.on(
           "board";
 
         console.log(
-          `Game started: ${game.instanceId}`
+          `Round 1 started: ${game.instanceId}`
+        );
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+
+
+    /*
+     * -----------------------------
+     * START ROUND 2
+     * -----------------------------
+     */
+
+    socket.on(
+      "start_round_2",
+
+      () => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          ) ||
+          game.phase !==
+            "round_break" ||
+          game.currentRound !==
+            1 ||
+          !Array.isArray(
+            game.gameConfig
+              ?.round2Categories
+          )
+        ) {
+          return;
+        }
+
+        startRoundTwo(
+          game
         );
 
         sendGameState(
@@ -3964,7 +4277,7 @@ httpServer.listen(
       null
     ) {
       console.log(
-        `TEST MODE: normal board enters Final Round after ${TEST_CLUE_LIMIT} clues`
+        `TEST MODE: each board completes after ${TEST_CLUE_LIMIT} clues`
       );
     }
   }
