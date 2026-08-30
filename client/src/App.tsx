@@ -1892,7 +1892,7 @@ function App() {
 
         showFeedback(
           "daily_double",
-          "Ã¢Å“Â¨ DAILY DOUBLE Ã¢Å“Â¨",
+          "✨ DAILY DOUBLE ✨",
           1200
         );
       }
@@ -1940,7 +1940,7 @@ function App() {
 
         showFeedback(
           "incorrect",
-          "Ã¢Å“â€¢ INCORRECT",
+          "✕ INCORRECT",
           850
         );
       }
@@ -2013,7 +2013,7 @@ function App() {
 
           showFeedback(
             "correct",
-            "Ã¢Å“â€œ CORRECT",
+            "✓ CORRECT",
             850
           );
         }
@@ -2081,7 +2081,7 @@ function App() {
 
           showFeedback(
             "correct",
-            "Ã¢Å“â€œ DAILY DOUBLE CORRECT",
+            "✓ DAILY DOUBLE CORRECT",
             950
           );
         } else if (
@@ -2097,7 +2097,7 @@ function App() {
 
           showFeedback(
             "incorrect",
-            "Ã¢Å“â€¢ DAILY DOUBLE",
+            "✕ DAILY DOUBLE",
             950
           );
         }
@@ -2131,7 +2131,7 @@ function App() {
 
         showFeedback(
           "ready",
-          "Ã°Å¸â€Â´ BUZZERS OPEN",
+          "🔴 BUZZERS OPEN",
           650
         );
       }
@@ -2161,7 +2161,7 @@ function App() {
         showFeedback(
           "buzz",
 
-          `Ã°Å¸â€â€ ${
+          `🔔 ${
             gameState
               .buzzer
               .winner
@@ -2191,7 +2191,7 @@ function App() {
 
             showFeedback(
               "final",
-              "Ã°Å¸Ââ€  FINAL ROUND",
+              "🏆 FINAL ROUND",
               1200
             );
           };
@@ -2269,7 +2269,7 @@ function App() {
 
           showFeedback(
             "correct",
-            "Ã¢Å“â€œ CORRECT",
+            "✓ CORRECT",
             850
           );
         }
@@ -2285,7 +2285,7 @@ function App() {
 
           showFeedback(
             "incorrect",
-            "Ã¢Å“â€¢ INCORRECT",
+            "✕ INCORRECT",
             850
           );
         }
@@ -2308,7 +2308,7 @@ function App() {
 
         showFeedback(
           "complete",
-          "Ã°Å¸Ââ€  GAME COMPLETE",
+          "🏆 GAME COMPLETE",
           1500
         );
       }
@@ -2580,7 +2580,7 @@ function App() {
               }
 
               setStatus(
-                "Ready to play! Ã¢Å“â€œ"
+                "Ready to play! ✓"
               );
 
               socket.emit(
@@ -3754,7 +3754,7 @@ function App() {
           ...current,
 
           [imageKey]:
-            "Image uploaded Ã¢Å“â€œ",
+            "Image uploaded ✓",
         })
       );
     }
@@ -4097,7 +4097,7 @@ function App() {
           ...current,
 
           [audioKey]:
-            "Audio uploaded âœ“",
+            "Audio uploaded ✓",
         })
       );
     }
@@ -4213,8 +4213,8 @@ function App() {
 
     const valueLabel =
       isRoundTwo
-        ? "$200 Ã¢â‚¬Â¢ $400 Ã¢â‚¬Â¢ $600 Ã¢â‚¬Â¢ $800 Ã¢â‚¬Â¢ $1000"
-        : "$100 Ã¢â‚¬Â¢ $200 Ã¢â‚¬Â¢ $300 Ã¢â‚¬Â¢ $400 Ã¢â‚¬Â¢ $500";
+        ? "$200 • $400 • $600 • $800 • $1000"
+        : "$100 • $200 • $300 • $400 • $500";
 
     return (
       <div
@@ -4330,7 +4330,7 @@ function App() {
                             />
 
                             <span>
-                              Ã¢Å“Â¨ Daily Double
+                              ✨ Daily Double
                             </span>
                           </label>
 
@@ -5260,8 +5260,8 @@ function App() {
     >
       <span>
         {soundEnabled
-          ? "Ã°Å¸â€Å "
-          : "Ã°Å¸â€â€¡"}
+          ? "🔊"
+          : "🔇"}
       </span>
 
       <strong>
@@ -5554,7 +5554,7 @@ function App() {
         <div className="host-tools-heading">
           <div>
             <span>
-              Ã°Å¸â€ºÂ  HOST TOOLS
+              🛠 HOST TOOLS
             </span>
 
             <h2>
@@ -5667,7 +5667,7 @@ function App() {
               !hostSelectedPlayerId
             }
           >
-            Ã¢Ë†â€™ Subtract
+            − Subtract
           </button>
         </div>
 
@@ -5682,7 +5682,7 @@ function App() {
               !canReopenBuzzers
             }
           >
-            Ã°Å¸â€â€œ Reopen Buzzers
+            🔓 Reopen Buzzers
           </button>
 
           <button
@@ -5694,7 +5694,7 @@ function App() {
               !canSkipClue
             }
           >
-            Ã¢ÂÂ­ Skip / End Clue
+            ⏭ Skip / End Clue
           </button>
 
           <button
@@ -5720,7 +5720,7 @@ function App() {
                 : "Nothing to undo"
             }
           >
-            Ã¢â€ Â¶ Undo Last Action
+            ↶ Undo Last Action
           </button>
         </div>
 
@@ -5771,7 +5771,7 @@ function App() {
 
               {player.id ===
                 gameState.hostId &&
-                " Ã°Å¸â€˜â€˜"}
+                " 👑"}
             </span>
 
             <strong>
@@ -5814,7 +5814,7 @@ function App() {
           {
             clue.categoryName
           }{" "}
-          Ã¢â‚¬Â¢ $
+          • $
           {
             clue.value
           }
@@ -5836,7 +5836,7 @@ function App() {
           }
         >
           <div className="daily-double-label">
-            Ã¢Å“Â¨ DAILY DOUBLE Ã¢Å“Â¨
+            ✨ DAILY DOUBLE ✨
           </div>
 
           <h2>
@@ -5920,7 +5920,7 @@ function App() {
           {
             clue.categoryName
           }{" "}
-          Ã¢â‚¬Â¢ $
+          • $
           {
             clue.value
           }
@@ -5934,7 +5934,7 @@ function App() {
 
         <section className="daily-double-screen">
           <div className="daily-double-label">
-            Ã¢Å“Â¨ DAILY DOUBLE Ã¢Å“Â¨
+            ✨ DAILY DOUBLE ✨
           </div>
 
           <h2>
@@ -6043,7 +6043,7 @@ function App() {
           {
             clue.categoryName
           }{" "}
-          Ã¢â‚¬Â¢ Wager{" "}
+          • Wager{" "}
           {formatScore(
             gameState
               .dailyDouble
@@ -6060,7 +6060,7 @@ function App() {
 
         <section className="daily-double-screen daily-double-clue-screen">
           <div className="daily-double-label">
-            Ã¢Å“Â¨ DAILY DOUBLE Ã¢Å“Â¨
+            ✨ DAILY DOUBLE ✨
           </div>
 
           <p className="daily-double-contestant">
@@ -6197,7 +6197,7 @@ function App() {
 
           {isDailyDoublePlayer ? (
             <p className="daily-double-your-turn">
-              Ã°Å¸Å½Â¯ This is your Daily
+              🎯 This is your Daily
               Double. Answer aloud in
               Discord.
             </p>
@@ -6222,7 +6222,7 @@ function App() {
                   judgeDailyDoubleCorrect
                 }
               >
-                Ã¢Å“â€œ Correct
+                ✓ Correct
               </button>
 
               <button
@@ -6232,7 +6232,7 @@ function App() {
                   judgeDailyDoubleIncorrect
                 }
               >
-                Ã¢Å“â€¢ Incorrect
+                ✕ Incorrect
               </button>
             </div>
           )}
@@ -6317,7 +6317,7 @@ function App() {
             .ownWagerLocked ? (
             <div className="final-locked-card">
               <span>
-                Ã°Å¸â€â€™ Wager Locked
+                🔒 Wager Locked
               </span>
 
               <strong>
@@ -6395,7 +6395,7 @@ function App() {
                     <strong>
                       {player
                         .wagerLocked
-                        ? "Ã¢Å“â€œ Wager Locked"
+                        ? "✓ Wager Locked"
                         : "Choosing Wager..."}
                     </strong>
                   </div>
@@ -6488,7 +6488,7 @@ function App() {
             .ownAnswerLocked ? (
             <div className="final-locked-card">
               <span>
-                Ã°Å¸â€â€™ Answer Locked
+                🔒 Answer Locked
               </span>
 
               <strong>
@@ -6558,7 +6558,7 @@ function App() {
                     <strong>
                       {player
                         .answerLocked
-                        ? "Ã¢Å“â€œ Answer Locked"
+                        ? "✓ Answer Locked"
                         : "Writing Answer..."}
                     </strong>
                   </div>
@@ -6713,7 +6713,7 @@ function App() {
                       .judged ===
                       true && (
                       <div className="final-judged-correct">
-                        Ã¢Å“â€œ Correct
+                        ✓ Correct
                       </div>
                     )}
 
@@ -6721,7 +6721,7 @@ function App() {
                       .judged ===
                       false && (
                       <div className="final-judged-incorrect">
-                        Ã¢Å“â€¢ Incorrect
+                        ✕ Incorrect
                       </div>
                     )}
 
@@ -6740,7 +6740,7 @@ function App() {
                               )
                             }
                           >
-                            Ã¢Å“â€œ Correct
+                            ✓ Correct
                           </button>
 
                           <button
@@ -6753,7 +6753,7 @@ function App() {
                               )
                             }
                           >
-                            Ã¢Å“â€¢ Incorrect
+                            ✕ Incorrect
                           </button>
                         </div>
                       )}
@@ -6844,7 +6844,7 @@ function App() {
         >
           <div className="final-heading">
             <span>
-              Ã°Å¸ÂÂ GAME COMPLETE
+              🏁 GAME COMPLETE
             </span>
 
             <h2>
@@ -6856,7 +6856,7 @@ function App() {
             {isTie ? (
               <>
                 <span>
-                  Ã°Å¸Ââ€  TIE GAME Ã°Å¸Ââ€ 
+                  🏆 TIE GAME 🏆
                 </span>
 
                 <strong>
@@ -6883,7 +6883,7 @@ function App() {
               0 ? (
               <>
                 <span>
-                  Ã°Å¸Ââ€  WINNER
+                  🏆 WINNER
                 </span>
 
                 <strong>
@@ -6932,13 +6932,13 @@ function App() {
                   <span className="final-place">
                     {index ===
                     0
-                      ? "Ã°Å¸Â¥â€¡"
+                      ? "🥇"
                       : index ===
                           1
-                        ? "Ã°Å¸Â¥Ë†"
+                        ? "🥈"
                         : index ===
                             2
-                          ? "Ã°Å¸Â¥â€°"
+                          ? "🥉"
                           : `#${index + 1}`}
                   </span>
 
@@ -7006,7 +7006,7 @@ function App() {
 
         <section className="round-break-screen">
           <div className="round-break-label">
-            Ã¢Å“Â¨ ROUND 1 COMPLETE Ã¢Å“Â¨
+            ✨ ROUND 1 COMPLETE ✨
           </div>
 
           <h2>
@@ -7025,7 +7025,7 @@ function App() {
             </span>
 
             <strong>
-              $200 Ã¢â‚¬Â¢ $400 Ã¢â‚¬Â¢ $600 Ã¢â‚¬Â¢ $800 Ã¢â‚¬Â¢ $1000
+              $200 • $400 • $600 • $800 • $1000
             </strong>
           </div>
 
@@ -7079,7 +7079,7 @@ function App() {
           {
             clue.categoryName
           }{" "}
-          Ã¢â‚¬Â¢ $
+          • $
           {
             clue.value
           }
@@ -7278,7 +7278,7 @@ function App() {
           {lockedOut &&
             !winner && (
               <p className="locked-message">
-                Ã¢ÂÅ’ You are locked
+                ❌ You are locked
                 out for this clue.
               </p>
             )}
@@ -7288,7 +7288,7 @@ function App() {
             .open && (
             <>
               <p className="buzzer-status">
-                Ã°Å¸â€Â´ BUZZERS OPEN
+                🔴 BUZZERS OPEN
               </p>
 
               {buzzerTimer}
@@ -7326,7 +7326,7 @@ function App() {
               }
             >
               <h2>
-                Ã°Å¸â€â€{" "}
+                🔔{" "}
                 {
                   winner.name
                 }
@@ -7341,8 +7341,8 @@ function App() {
               {answerTimerPlayer && (
                 <p className="answering-player">
                   {currentUserIsAnswering
-                    ? "Ã°Å¸Å½Â¤ Your turn to answer!"
-                    : `Ã°Å¸Å½Â¤ ${answerTimerPlayer.name} is answering...`}
+                    ? "🎤 Your turn to answer!"
+                    : `🎤 ${answerTimerPlayer.name} is answering...`}
                 </p>
               )}
 
@@ -7355,7 +7355,7 @@ function App() {
                       judgeCorrect
                     }
                   >
-                    Ã¢Å“â€œ Correct
+                    ✓ Correct
                   </button>
 
                   <button
@@ -7365,7 +7365,7 @@ function App() {
                       judgeIncorrect
                     }
                   >
-                    Ã¢Å“â€¢ Incorrect
+                    ✕ Incorrect
                   </button>
                 </div>
               )}
@@ -7441,8 +7441,8 @@ function App() {
             {gameState
               .currentRound ===
             2
-              ? "$200 Ã¢â‚¬Â¢ $400 Ã¢â‚¬Â¢ $600 Ã¢â‚¬Â¢ $800 Ã¢â‚¬Â¢ $1000"
-              : "$100 Ã¢â‚¬Â¢ $200 Ã¢â‚¬Â¢ $300 Ã¢â‚¬Â¢ $400 Ã¢â‚¬Â¢ $500"}
+              ? "$200 • $400 • $600 • $800 • $1000"
+              : "$100 • $200 • $300 • $400 • $500"}
           </strong>
         </div>
 
@@ -7452,7 +7452,7 @@ function App() {
 
         {isHost ? (
           <p>
-            Ã°Å¸â€˜â€˜ Host controls enabled
+            👑 Host controls enabled
           </p>
         ) : (
           <p>
@@ -7589,7 +7589,7 @@ function App() {
                         player.id
                       }
                     >
-                      Ã°Å¸Å¸Â¢{" "}
+                      🟢{" "}
                       {
                         player.name
                       }
@@ -7599,7 +7599,7 @@ function App() {
                           .hostId && (
                         <strong>
                           {" "}
-                          Ã°Å¸â€˜â€˜ HOST
+                          👑 HOST
                         </strong>
                       )}
                     </li>
@@ -7716,7 +7716,7 @@ function App() {
                           {
                             game.categoryCount
                           }{" "}
-                          categories Ã¢â‚¬Â¢{" "}
+                          categories •{" "}
                           {
                             game.clueCount
                           }{" "}
@@ -7848,7 +7848,7 @@ function App() {
             <div className="final-editor">
               <div className="final-editor-heading">
                 <span>
-                  Ã°Å¸Ââ€  FINAL ROUND
+                  🏆 FINAL ROUND
                 </span>
 
                 <h2>
