@@ -48,6 +48,10 @@ type EditorClue = {
   value: number;
   question: string;
   answer: string;
+
+  imageUrl:
+    string;
+
   dailyDouble: boolean;
 };
 
@@ -87,6 +91,10 @@ type CurrentClue = {
   value: number;
   question: string | null;
   answer: string | null;
+
+  imageUrl:
+    string;
+
   dailyDouble: boolean;
 };
 
@@ -187,6 +195,24 @@ type HostToolsState = {
     | string
     | null;
 };
+
+type ClueImageUploadResponse = {
+  ok:
+    boolean;
+
+  imageUrl?:
+    string;
+
+  mimeType?:
+    string;
+
+  size?:
+    number;
+
+  error?:
+    string;
+};
+
 
 type GameState = {
   hostId: string;
@@ -364,6 +390,9 @@ function createBlankCategories(
               "",
 
             answer:
+              "",
+
+            imageUrl:
               "",
 
             dailyDouble:
@@ -1058,6 +1087,37 @@ function App() {
     >(
       null
     );
+
+  /*
+   * --------------------------------
+   * CLUE IMAGE UPLOAD STATE
+   * --------------------------------
+   */
+
+  const [
+    uploadingClueImage,
+    setUploadingClueImage,
+  ] =
+    useState<
+      string | null
+    >(
+      null
+    );
+
+
+  const [
+    clueImageMessages,
+    setClueImageMessages,
+  ] =
+    useState<
+      Record<
+        string,
+        string
+      >
+    >(
+      {}
+    );
+
 
   const socketRef =
     useRef<
@@ -2903,6 +2963,354 @@ function App() {
   }
 
 
+  function getClueImageKey(
+    round:
+      1 | 2,
+
+    categoryIndex:
+      number,
+
+    clueIndex:
+      number
+  ) {
+    return `${round}-${categoryIndex}-${clueIndex}`;
+  }
+
+
+  function updateClueImageUrl(
+    categoryIndex:
+      number,
+
+    clueIndex:
+      number,
+
+    imageUrl:
+      string,
+
+    round:
+      1 | 2 =
+      1
+  ) {
+    const categoryKey:
+      | "categories"
+      | "round2Categories" =
+        round ===
+          2
+          ? "round2Categories"
+          : "categories";
+
+
+    setEditorConfig(
+      (
+        current
+      ) => ({
+        ...current,
+
+        [categoryKey]:
+          current[
+            categoryKey
+          ].map(
+            (
+              category,
+              currentCategoryIndex
+            ) => {
+              if (
+                currentCategoryIndex !==
+                categoryIndex
+              ) {
+                return category;
+              }
+
+
+              return {
+                ...category,
+
+                clues:
+                  category
+                    .clues
+                    .map(
+                      (
+                        clue,
+                        currentClueIndex
+                      ) =>
+                        currentClueIndex ===
+                        clueIndex
+                          ? {
+                              ...clue,
+                              imageUrl,
+                            }
+                          : clue
+                    ),
+              };
+            }
+          ),
+      })
+    );
+
+
+    setDirty(
+      imageUrl
+        ? "Clue image added"
+        : "Clue image removed"
+    );
+  }
+
+
+  async function uploadClueImage(
+    file:
+      File,
+
+    categoryIndex:
+      number,
+
+    clueIndex:
+      number,
+
+    round:
+      1 | 2 =
+      1
+  ) {
+    const socket =
+      socketRef.current;
+
+    const imageKey =
+      getClueImageKey(
+        round,
+        categoryIndex,
+        clueIndex
+      );
+
+
+    const allowedTypes =
+      new Set([
+        "image/png",
+        "image/jpeg",
+        "image/webp",
+        "image/gif",
+      ]);
+
+
+    if (
+      !allowedTypes.has(
+        file.type
+      )
+    ) {
+      setClueImageMessages(
+        (
+          current
+        ) => ({
+          ...current,
+
+          [imageKey]:
+            "Use PNG, JPEG, WebP, or GIF.",
+        })
+      );
+
+      return;
+    }
+
+
+    if (
+      file.size >
+      5 *
+      1024 *
+      1024
+    ) {
+      setClueImageMessages(
+        (
+          current
+        ) => ({
+          ...current,
+
+          [imageKey]:
+            "Image must be 5 MB or smaller.",
+        })
+      );
+
+      return;
+    }
+
+
+    if (
+      !socket ||
+      !socket.connected
+    ) {
+      setClueImageMessages(
+        (
+          current
+        ) => ({
+          ...current,
+
+          [imageKey]:
+            "BuzzBoard is not connected.",
+        })
+      );
+
+      return;
+    }
+
+
+    setUploadingClueImage(
+      imageKey
+    );
+
+
+    setClueImageMessages(
+      (
+        current
+      ) => ({
+        ...current,
+
+        [imageKey]:
+          "Uploading image...",
+      })
+    );
+
+
+    try {
+      const data =
+        await file.arrayBuffer();
+
+
+      const response =
+        await new Promise<
+          ClueImageUploadResponse
+        >(
+          (
+            resolve
+          ) => {
+            let finished =
+              false;
+
+
+            const timer =
+              window.setTimeout(
+                () => {
+                  if (
+                    finished
+                  ) {
+                    return;
+                  }
+
+                  finished =
+                    true;
+
+                  resolve({
+                    ok:
+                      false,
+
+                    error:
+                      "Image upload timed out.",
+                  });
+                },
+
+                15_000
+              );
+
+
+            socket.emit(
+              "upload_clue_image",
+
+              {
+                mimeType:
+                  file.type,
+
+                data,
+              },
+
+              (
+                result:
+                  ClueImageUploadResponse
+              ) => {
+                if (
+                  finished
+                ) {
+                  return;
+                }
+
+                finished =
+                  true;
+
+                window.clearTimeout(
+                  timer
+                );
+
+                resolve(
+                  result
+                );
+              }
+            );
+          }
+        );
+
+
+      if (
+        !response.ok ||
+        !response.imageUrl
+      ) {
+        setClueImageMessages(
+          (
+            current
+          ) => ({
+            ...current,
+
+            [imageKey]:
+              response.error ||
+              "Image upload failed.",
+          })
+        );
+
+        return;
+      }
+
+
+      updateClueImageUrl(
+        categoryIndex,
+        clueIndex,
+        response.imageUrl,
+        round
+      );
+
+
+      setClueImageMessages(
+        (
+          current
+        ) => ({
+          ...current,
+
+          [imageKey]:
+            "Image uploaded ✓",
+        })
+      );
+    }
+    catch (
+      error
+    ) {
+      console.error(
+        "Clue image upload failed:",
+        error
+      );
+
+
+      setClueImageMessages(
+        (
+          current
+        ) => ({
+          ...current,
+
+          [imageKey]:
+            "Image upload failed.",
+        })
+      );
+    }
+    finally {
+      setUploadingClueImage(
+        null
+      );
+    }
+  }
+
+
   function toggleDailyDouble(
     categoryIndex:
       number,
@@ -3107,6 +3515,125 @@ function App() {
                               ✨ Daily Double
                             </span>
                           </label>
+
+
+                          <div className="clue-image-editor">
+                            <div className="clue-image-editor-label">
+                              <span>
+                                Image
+                              </span>
+
+                              <small>
+                                Optional
+                              </small>
+                            </div>
+
+
+                            {clue.imageUrl ? (
+                              <div className="clue-image-preview">
+                                <img
+                                  src={
+                                    clue.imageUrl
+                                  }
+                                  alt="Clue preview"
+                                />
+
+                                <button
+                                  type="button"
+                                  className="remove-clue-image-button"
+                                  onClick={() =>
+                                    updateClueImageUrl(
+                                      categoryIndex,
+                                      clueIndex,
+                                      "",
+                                      round
+                                    )
+                                  }
+                                >
+                                  Remove Image
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="clue-image-empty">
+                                No image selected
+                              </div>
+                            )}
+
+
+                            <label className="clue-image-upload-button">
+                              {
+                                uploadingClueImage ===
+                                getClueImageKey(
+                                  round,
+                                  categoryIndex,
+                                  clueIndex
+                                )
+                                  ? "Uploading..."
+                                  : clue.imageUrl
+                                    ? "Replace Image"
+                                    : "Choose Image"
+                              }
+
+                              <input
+                                type="file"
+                                accept="image/png,image/jpeg,image/webp,image/gif"
+                                disabled={
+                                  uploadingClueImage !==
+                                  null
+                                }
+                                onChange={(
+                                  event
+                                ) => {
+                                  const input =
+                                    event.currentTarget;
+
+                                  const file =
+                                    input.files?.[
+                                      0
+                                    ];
+
+
+                                  input.value =
+                                    "";
+
+
+                                  if (!file) {
+                                    return;
+                                  }
+
+
+                                  void uploadClueImage(
+                                    file,
+                                    categoryIndex,
+                                    clueIndex,
+                                    round
+                                  );
+                                }}
+                              />
+                            </label>
+
+
+                            {clueImageMessages[
+                              getClueImageKey(
+                                round,
+                                categoryIndex,
+                                clueIndex
+                              )
+                            ] && (
+                              <small className="clue-image-message">
+                                {
+                                  clueImageMessages[
+                                    getClueImageKey(
+                                      round,
+                                      categoryIndex,
+                                      clueIndex
+                                    )
+                                  ]
+                                }
+                              </small>
+                            )}
+                          </div>
+
 
                           <label>
                             <span>
@@ -4427,10 +4954,31 @@ function App() {
             </strong>
           </p>
 
-          <h2 className="daily-double-question">
-            {clue.question ||
-              "(No clue text entered)"}
-          </h2>
+          {clue.question ? (
+            <h2 className="daily-double-question">
+              {clue.question}
+            </h2>
+          ) : !clue.imageUrl ? (
+            <h2 className="daily-double-question">
+              (No clue text entered)
+            </h2>
+          ) : null}
+
+
+          {clue.imageUrl && (
+            <div className="clue-image-display daily-double-clue-image">
+              <img
+                src={
+                  clue.imageUrl
+                }
+                alt="Daily Double clue visual"
+                draggable={
+                  false
+                }
+              />
+            </div>
+          )}
+
 
           {answerTimer}
 
@@ -5346,10 +5894,31 @@ function App() {
         {hostToolsPanel}
 
         <section className="clue-screen">
-          <h2>
-            {clue.question ||
-              "(No clue text entered)"}
-          </h2>
+          {clue.question ? (
+            <h2>
+              {clue.question}
+            </h2>
+          ) : !clue.imageUrl ? (
+            <h2>
+              (No clue text entered)
+            </h2>
+          ) : null}
+
+
+          {clue.imageUrl && (
+            <div className="clue-image-display normal-clue-image">
+              <img
+                src={
+                  clue.imageUrl
+                }
+                alt="Clue visual"
+                draggable={
+                  false
+                }
+              />
+            </div>
+          )}
+
 
           {isHost &&
             clue.answer !==

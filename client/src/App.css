@@ -5977,3 +5977,504 @@ body[data-feedback="complete"]::after {
 
 
 /* ===== BUZZBOARD END SCREEN POLISH END ===== */
+
+/* ===== BUZZBOARD IMAGE CLUES START ===== */
+
+
+/* --------------------------------------------------
+   CLUE IMAGE EDITOR
+-------------------------------------------------- */
+
+.clue-image-editor {
+  margin:
+    14px 0 4px;
+
+  padding:
+    11px;
+
+  border:
+    1px solid
+    rgba(
+      222,
+      145,
+      207,
+      0.24
+    );
+
+  border-radius:
+    12px;
+
+  background:
+    rgba(
+      19,
+      9,
+      26,
+      0.38
+    );
+}
+
+
+.clue-image-editor-label {
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  gap:
+    10px;
+
+  margin-bottom:
+    9px;
+
+  color:
+    #f0dce9;
+
+  font-size:
+    0.82rem;
+
+  font-weight:
+    800;
+}
+
+
+.clue-image-editor-label small {
+  color:
+    rgba(
+      237,
+      210,
+      229,
+      0.62
+    );
+
+  font-size:
+    0.7rem;
+
+  font-weight:
+    600;
+}
+
+
+.clue-image-empty {
+  display:
+    grid;
+
+  place-items:
+    center;
+
+  min-height:
+    72px;
+
+  padding:
+    10px;
+
+  border:
+    1px dashed
+    rgba(
+      223,
+      151,
+      205,
+      0.28
+    );
+
+  border-radius:
+    10px;
+
+  color:
+    rgba(
+      239,
+      216,
+      233,
+      0.56
+    );
+
+  font-size:
+    0.76rem;
+
+  text-align:
+    center;
+}
+
+
+.clue-image-preview {
+  display:
+    grid;
+
+  gap:
+    9px;
+}
+
+
+.clue-image-preview img {
+  display:
+    block;
+
+  width:
+    100%;
+
+  max-height:
+    160px;
+
+  object-fit:
+    contain;
+
+  border:
+    1px solid
+    rgba(
+      239,
+      148,
+      188,
+      0.24
+    );
+
+  border-radius:
+    10px;
+
+  background:
+    rgba(
+      8,
+      4,
+      12,
+      0.58
+    );
+}
+
+
+.editor-clue
+.clue-image-upload-button {
+  position:
+    relative;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  min-height:
+    40px;
+
+  margin-top:
+    9px;
+
+  padding:
+    8px 10px;
+
+  border:
+    1px solid
+    rgba(
+      239,
+      148,
+      188,
+      0.36
+    );
+
+  border-radius:
+    10px;
+
+  background:
+    rgba(
+      115,
+      57,
+      113,
+      0.52
+    );
+
+  color:
+    #fff4fa;
+
+  font-size:
+    0.78rem;
+
+  font-weight:
+    800;
+
+  text-align:
+    center;
+
+  cursor:
+    pointer;
+
+  transition:
+    transform
+    120ms ease,
+    background
+    120ms ease;
+}
+
+
+.editor-clue
+.clue-image-upload-button:hover {
+  background:
+    rgba(
+      152,
+      76,
+      140,
+      0.66
+    );
+
+  transform:
+    translateY(
+      -1px
+    );
+}
+
+
+.editor-clue
+.clue-image-upload-button input {
+  position:
+    absolute;
+
+  width:
+    1px;
+
+  height:
+    1px;
+
+  min-height:
+    0;
+
+  margin:
+    -1px;
+
+  padding:
+    0;
+
+  overflow:
+    hidden;
+
+  opacity:
+    0;
+
+  pointer-events:
+    none;
+}
+
+
+.game .remove-clue-image-button {
+  width:
+    100%;
+
+  min-height:
+    38px;
+
+  padding:
+    7px 10px;
+
+  border:
+    1px solid
+    rgba(
+      222,
+      119,
+      158,
+      0.34
+    );
+
+  background:
+    rgba(
+      105,
+      42,
+      70,
+      0.42
+    );
+
+  color:
+    #ffdbe9;
+
+  font-size:
+    0.76rem;
+}
+
+
+.game
+.remove-clue-image-button:hover:not(:disabled) {
+  background:
+    rgba(
+      141,
+      53,
+      88,
+      0.60
+    );
+}
+
+
+.clue-image-message {
+  display:
+    block;
+
+  margin-top:
+    8px;
+
+  color:
+    #e9bfd9;
+
+  font-size:
+    0.72rem;
+
+  line-height:
+    1.3;
+
+  text-align:
+    center;
+}
+
+
+/* --------------------------------------------------
+   IMAGE DURING GAMEPLAY
+-------------------------------------------------- */
+
+.clue-image-display {
+  width:
+    min(
+      760px,
+      96%
+    );
+
+  margin:
+    18px auto 28px;
+
+  padding:
+    10px;
+
+  border:
+    1px solid
+    rgba(
+      239,
+      148,
+      188,
+      0.34
+    );
+
+  border-radius:
+    18px;
+
+  background:
+    rgba(
+      12,
+      5,
+      18,
+      0.56
+    );
+
+  box-shadow:
+    0 16px 36px
+    rgba(
+      5,
+      2,
+      8,
+      0.22
+    );
+}
+
+
+.clue-image-display img {
+  display:
+    block;
+
+  width:
+    auto;
+
+  max-width:
+    100%;
+
+  height:
+    auto;
+
+  max-height:
+    440px;
+
+  margin:
+    0 auto;
+
+  object-fit:
+    contain;
+
+  border-radius:
+    12px;
+}
+
+
+.daily-double-clue-image {
+  border-color:
+    rgba(
+      246,
+      230,
+      168,
+      0.42
+    );
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(
+        29,
+        15,
+        34,
+        0.82
+      ),
+      rgba(
+        47,
+        37,
+        19,
+        0.54
+      )
+    );
+}
+
+
+/*
+ * If the clue is image-only,
+ * allow the image to carry the
+ * visual weight without leaving
+ * an empty text gap.
+ */
+
+.clue-screen
+.clue-image-display:first-child,
+.daily-double-clue-screen
+.clue-image-display {
+  margin-top:
+    18px;
+}
+
+
+/* --------------------------------------------------
+   MOBILE
+-------------------------------------------------- */
+
+@media (
+  max-width:
+  650px
+) {
+  .clue-image-display {
+    width:
+      100%;
+
+    padding:
+      7px;
+
+    margin-bottom:
+      20px;
+  }
+
+
+  .clue-image-display img {
+    max-height:
+      320px;
+  }
+
+
+  .clue-image-preview img {
+    max-height:
+      130px;
+  }
+}
+
+
+/* ===== BUZZBOARD IMAGE CLUES END ===== */

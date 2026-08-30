@@ -8,6 +8,9 @@ import {
   saveGameToLibrary,
   loadGameFromLibrary,
   deleteGameFromLibrary,
+  CLUE_IMAGE_MAX_BYTES,
+  saveClueImage,
+  loadClueImage,
 } from "./storage.js";
 
 dotenv.config();
@@ -22,9 +25,107 @@ const ANSWER_WINDOW_MS = 8_000;
 const DAILY_DOUBLE_ANSWER_MS = 12_000;
 
 const httpServer = createServer(app);
-const io = new Server(httpServer);
+const io =
+  new Server(
+    httpServer,
+    {
+      /*
+       * Clue images are capped at 5 MB,
+       * with a little protocol overhead
+       * allowed for Socket.IO.
+       */
+      maxHttpBufferSize:
+        6 *
+        1024 *
+        1024,
+    }
+  );
 
 app.use(express.json());
+
+
+/*
+ * --------------------------------
+ * CLUE IMAGE API
+ * --------------------------------
+ *
+ * Uploads happen through the
+ * authenticated host Socket.IO
+ * connection.
+ *
+ * This HTTP route is read-only so
+ * every player can display the image.
+ */
+
+app.get(
+  "/api/clue-images/:filename",
+
+  async (
+    req,
+    res
+  ) => {
+    try {
+      const image =
+        await loadClueImage(
+          req.params.filename
+        );
+
+      if (!image) {
+        return res
+          .status(
+            404
+          )
+          .json({
+            error:
+              "Clue image not found.",
+          });
+      }
+
+
+      /*
+       * UUID filenames never change,
+       * so browsers may safely cache
+       * them for a long time.
+       */
+      res.setHeader(
+        "Content-Type",
+        image.mimeType
+      );
+
+      res.setHeader(
+        "Content-Length",
+        String(
+          image.size
+        )
+      );
+
+      res.setHeader(
+        "Cache-Control",
+        "public, max-age=31536000, immutable"
+      );
+
+
+      return res.send(
+        image.contents
+      );
+    }
+    catch (error) {
+      console.error(
+        "Could not serve clue image:",
+        error
+      );
+
+      return res
+        .status(
+          500
+        )
+        .json({
+          error:
+            "Could not load clue image.",
+        });
+    }
+  }
+);
 
 
 /*
@@ -692,6 +793,37 @@ function cleanText(
 }
 
 
+function cleanClueImageUrl(
+  value
+) {
+  if (
+    typeof value !==
+      "string"
+  ) {
+    return "";
+  }
+
+
+  const imageUrl =
+    value.trim();
+
+
+  /*
+   * Only images created by BuzzBoard's
+   * own uploader may be stored in a game.
+   */
+  if (
+    !/^\/api\/clue-images\/[0-9a-f-]{36}\.(png|jpg|webp|gif)$/i.test(
+      imageUrl
+    )
+  ) {
+    return "";
+  }
+
+
+  return imageUrl;
+}
+
 /*
  * --------------------------------
  * GAME CONFIG
@@ -761,6 +893,9 @@ function createBlankCategories(
               "",
 
             answer:
+              "",
+
+            imageUrl:
               "",
 
             dailyDouble:
@@ -853,6 +988,11 @@ function normalizeCategories(
                 answer:
                   cleanText(
                     clue?.answer
+                  ),
+
+                imageUrl:
+                  cleanClueImageUrl(
+                    clue?.imageUrl
                   ),
 
                 dailyDouble:
@@ -1562,6 +1702,11 @@ function serializeGameForSocket(
                 ? game.currentClue
                     .answer
                 : null,
+
+            imageUrl:
+              game.currentClue
+                .imageUrl ??
+              "",
 
             dailyDouble:
               game.currentClue
@@ -2325,6 +2470,196 @@ io.on(
      * -----------------------------
      */
 
+    /*
+     * -----------------------------
+     * CLUE IMAGE UPLOAD
+     * -----------------------------
+     *
+     * Only the active host may upload,
+     * and only while editing in the
+     * lobby.
+     */
+
+    socket.on(
+      "upload_clue_image",
+
+      async (
+        payload,
+        acknowledge
+      ) => {
+        const reply =
+          typeof acknowledge ===
+            "function"
+            ? acknowledge
+            : () => {};
+
+
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          ) ||
+          game.phase !==
+            "lobby"
+        ) {
+          reply({
+            ok:
+              false,
+
+            error:
+              "Only the host can upload clue images while editing.",
+          });
+
+          return;
+        }
+
+
+        const mimeType =
+          typeof payload
+            ?.mimeType ===
+            "string"
+            ? payload.mimeType
+            : "";
+
+
+        const rawData =
+          payload?.data;
+
+
+        let contents =
+          null;
+
+
+        /*
+         * Socket.IO normally delivers
+         * browser binary payloads to
+         * Node as Buffer objects, but
+         * accept common binary views too.
+         */
+
+        if (
+          Buffer.isBuffer(
+            rawData
+          )
+        ) {
+          contents =
+            rawData;
+        }
+        else if (
+          rawData instanceof
+            ArrayBuffer
+        ) {
+          contents =
+            Buffer.from(
+              rawData
+            );
+        }
+        else if (
+          ArrayBuffer.isView(
+            rawData
+          )
+        ) {
+          contents =
+            Buffer.from(
+              rawData.buffer,
+              rawData.byteOffset,
+              rawData.byteLength
+            );
+        }
+
+
+        if (!contents) {
+          reply({
+            ok:
+              false,
+
+            error:
+              "No valid image data was received.",
+          });
+
+          return;
+        }
+
+
+        if (
+          contents.length >
+            CLUE_IMAGE_MAX_BYTES
+        ) {
+          reply({
+            ok:
+              false,
+
+            error:
+              "Image must be 5 MB or smaller.",
+          });
+
+          return;
+        }
+
+
+        try {
+          const savedImage =
+            await saveClueImage(
+              contents,
+              mimeType
+            );
+
+
+          const imageUrl =
+            `/api/clue-images/${
+              savedImage.filename
+            }`;
+
+
+          console.log(
+            `Clue image uploaded: ${savedImage.filename} (${savedImage.size} bytes)`
+          );
+
+
+          reply({
+            ok:
+              true,
+
+            imageUrl,
+
+            mimeType:
+              savedImage.mimeType,
+
+            size:
+              savedImage.size,
+          });
+        }
+        catch (error) {
+          console.error(
+            "Could not upload clue image:",
+            error
+          );
+
+
+          reply({
+            ok:
+              false,
+
+            error:
+              error instanceof
+                Error
+                ? error.message
+                : "Could not upload clue image.",
+          });
+        }
+      }
+    );
+
+
     socket.on(
       "list_saved_games",
 
@@ -2861,6 +3196,10 @@ io.on(
 
           answer:
             clue.answer,
+
+          imageUrl:
+            clue.imageUrl ??
+            "",
 
           dailyDouble:
             clue.dailyDouble ===
