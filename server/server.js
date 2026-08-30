@@ -11,6 +11,10 @@ import {
   CLUE_IMAGE_MAX_BYTES,
   saveClueImage,
   loadClueImage,
+
+  CLUE_AUDIO_MAX_BYTES,
+  saveClueAudio,
+  loadClueAudio,
 } from "./storage.js";
 
 dotenv.config();
@@ -42,6 +46,84 @@ const io =
   );
 
 app.use(express.json());
+
+/*
+ * --------------------------------
+ * CLUE AUDIO API
+ * --------------------------------
+ *
+ * Uploads use the authenticated
+ * host Socket.IO connection.
+ *
+ * Audio retrieval is read-only.
+ */
+
+app.get(
+  "/api/clue-audio/:filename",
+
+  async (
+    req,
+    res
+  ) => {
+    try {
+      const audio =
+        await loadClueAudio(
+          req.params.filename
+        );
+
+
+      if (!audio) {
+        return res
+          .status(
+            404
+          )
+          .json({
+            error:
+              "Clue audio not found.",
+          });
+      }
+
+
+      res.setHeader(
+        "Content-Type",
+        audio.mimeType
+      );
+
+      res.setHeader(
+        "Content-Length",
+        String(
+          audio.size
+        )
+      );
+
+      res.setHeader(
+        "Cache-Control",
+        "public, max-age=31536000, immutable"
+      );
+
+
+      return res.send(
+        audio.contents
+      );
+    }
+    catch (error) {
+      console.error(
+        "Could not serve clue audio:",
+        error
+      );
+
+
+      return res
+        .status(
+          500
+        )
+        .json({
+          error:
+            "Could not load clue audio.",
+        });
+    }
+  }
+);
 
 
 /*
@@ -824,6 +906,37 @@ function cleanClueImageUrl(
   return imageUrl;
 }
 
+function cleanClueAudioUrl(
+  value
+) {
+  if (
+    typeof value !==
+    "string"
+  ) {
+    return "";
+  }
+
+
+  const audioUrl =
+    value.trim();
+
+
+  /*
+   * Only BuzzBoard-owned uploaded
+   * audio paths may be stored.
+   */
+  if (
+    !/^\/api\/clue-audio\/[0-9a-f-]{36}\.(mp3|wav|ogg|webm)$/i.test(
+      audioUrl
+    )
+  ) {
+    return "";
+  }
+
+
+  return audioUrl;
+}
+
 /*
  * --------------------------------
  * GAME CONFIG
@@ -896,6 +1009,9 @@ function createBlankCategories(
               "",
 
             imageUrl:
+              "",
+
+            audioUrl:
               "",
 
             dailyDouble:
@@ -993,6 +1109,11 @@ function normalizeCategories(
                 imageUrl:
                   cleanClueImageUrl(
                     clue?.imageUrl
+                  ),
+
+                audioUrl:
+                  cleanClueAudioUrl(
+                    clue?.audioUrl
                   ),
 
                 dailyDouble:
@@ -1706,6 +1827,11 @@ function serializeGameForSocket(
             imageUrl:
               game.currentClue
                 .imageUrl ??
+              "",
+
+            audioUrl:
+              game.currentClue
+                .audioUrl ??
               "",
 
             dailyDouble:
@@ -2660,6 +2786,339 @@ io.on(
     );
 
 
+    /*
+     * -----------------------------
+     * CLUE AUDIO UPLOAD
+     * -----------------------------
+     */
+
+    socket.on(
+      "upload_clue_audio",
+
+      async (
+        payload,
+        acknowledge
+      ) => {
+        const reply =
+          typeof acknowledge ===
+            "function"
+            ? acknowledge
+            : () => {};
+
+
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          ) ||
+          game.phase !==
+            "lobby"
+        ) {
+          reply({
+            ok:
+              false,
+
+            error:
+              "Only the host can upload clue audio while editing.",
+          });
+
+          return;
+        }
+
+
+        const mimeType =
+          typeof payload
+            ?.mimeType ===
+            "string"
+            ? payload.mimeType
+            : "";
+
+
+        const rawData =
+          payload?.data;
+
+
+        let contents =
+          null;
+
+
+        if (
+          Buffer.isBuffer(
+            rawData
+          )
+        ) {
+          contents =
+            rawData;
+        }
+        else if (
+          rawData instanceof
+            ArrayBuffer
+        ) {
+          contents =
+            Buffer.from(
+              rawData
+            );
+        }
+        else if (
+          ArrayBuffer.isView(
+            rawData
+          )
+        ) {
+          contents =
+            Buffer.from(
+              rawData.buffer,
+              rawData.byteOffset,
+              rawData.byteLength
+            );
+        }
+
+
+        if (!contents) {
+          reply({
+            ok:
+              false,
+
+            error:
+              "No valid audio data was received.",
+          });
+
+          return;
+        }
+
+
+        if (
+          contents.length >
+          CLUE_AUDIO_MAX_BYTES
+        ) {
+          reply({
+            ok:
+              false,
+
+            error:
+              "Audio must be 5 MB or smaller.",
+          });
+
+          return;
+        }
+
+
+        try {
+          const savedAudio =
+            await saveClueAudio(
+              contents,
+              mimeType
+            );
+
+
+          const audioUrl =
+            `/api/clue-audio/${
+              savedAudio.filename
+            }`;
+
+
+          console.log(
+            `Clue audio uploaded: ${savedAudio.filename} (${savedAudio.size} bytes)`
+          );
+
+
+          reply({
+            ok:
+              true,
+
+            audioUrl,
+
+            mimeType:
+              savedAudio.mimeType,
+
+            size:
+              savedAudio.size,
+          });
+        }
+        catch (error) {
+          console.error(
+            "Could not upload clue audio:",
+            error
+          );
+
+
+          reply({
+            ok:
+              false,
+
+            error:
+              error instanceof
+                Error
+                ? error.message
+                : "Could not upload clue audio.",
+          });
+        }
+      }
+    );
+
+    /*
+     * -----------------------------
+     * SYNCHRONIZED CLUE AUDIO
+     * -----------------------------
+     *
+     * Only the host may control
+     * gameplay audio.
+     *
+     * Audio may play only while the
+     * real clue itself is visible:
+     *
+     *   clue
+     *   daily_double_clue
+     *
+     * It cannot fire during the
+     * Daily Double selection or
+     * wagering screens.
+     */
+
+    socket.on(
+      "control_clue_audio",
+
+      (
+        payload
+      ) => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          )
+        ) {
+          return;
+        }
+
+
+        if (
+          game.phase !==
+            "clue" &&
+          game.phase !==
+            "daily_double_clue"
+        ) {
+          return;
+        }
+
+
+        const clue =
+          game.currentClue;
+
+
+        if (
+          !clue ||
+          typeof clue.audioUrl !==
+            "string" ||
+          clue.audioUrl.trim() ===
+            ""
+        ) {
+          return;
+        }
+
+
+        const requestedAction =
+          typeof payload
+            ?.action ===
+            "string"
+            ? payload.action
+            : "";
+
+
+        if (
+          requestedAction !==
+            "play" &&
+          requestedAction !==
+            "replay" &&
+          requestedAction !==
+            "stop"
+        ) {
+          return;
+        }
+
+
+        /*
+         * Play and replay both restart
+         * the clip from 0. Replay is kept
+         * as an accepted host command so
+         * the UI can label it clearly.
+         */
+        const broadcastAction =
+          requestedAction ===
+            "stop"
+            ? "stop"
+            : "play";
+
+
+        const commandId =
+          `${
+            Date.now()
+          }-${
+            Math.random()
+              .toString(
+                36
+              )
+              .slice(
+                2,
+                10
+              )
+          }`;
+
+
+        const command = {
+          action:
+            broadcastAction,
+
+          requestedAction,
+
+          audioUrl:
+            clue.audioUrl,
+
+          clueId:
+            clue.clueId,
+
+          commandId,
+
+          issuedAt:
+            Date.now(),
+        };
+
+
+        /*
+         * Every BuzzBoard participant
+         * already occupies the game's
+         * instanceId Socket.IO room.
+         */
+        io.to(
+          game.instanceId
+        ).emit(
+          "clue_audio_command",
+          command
+        );
+
+
+        console.log(
+          `CLUE AUDIO ${requestedAction.toUpperCase()}: ${game.instanceId} / ${clue.clueId}`
+        );
+      }
+    );
+
     socket.on(
       "list_saved_games",
 
@@ -2753,7 +3212,7 @@ io.on(
             "library_message",
             {
               message:
-                `"${savedGame.title}" saved ✓`,
+                `"${savedGame.title}" saved ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“`,
             }
           );
 
@@ -2863,7 +3322,7 @@ io.on(
             "library_message",
             {
               message:
-                `"${savedGame.title}" loaded ✓`,
+                `"${savedGame.title}" loaded ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“`,
             }
           );
 
@@ -3199,6 +3658,10 @@ io.on(
 
           imageUrl:
             clue.imageUrl ??
+            "",
+
+          audioUrl:
+            clue.audioUrl ??
             "",
 
           dailyDouble:

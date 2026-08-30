@@ -52,6 +52,9 @@ type EditorClue = {
   imageUrl:
     string;
 
+  audioUrl:
+    string;
+
   dailyDouble: boolean;
 };
 
@@ -93,6 +96,9 @@ type CurrentClue = {
   answer: string | null;
 
   imageUrl:
+    string;
+
+  audioUrl:
     string;
 
   dailyDouble: boolean;
@@ -213,6 +219,47 @@ type ClueImageUploadResponse = {
     string;
 };
 
+
+type ClueAudioUploadResponse = {
+  ok:
+    boolean;
+
+  audioUrl?:
+    string;
+
+  mimeType?:
+    string;
+
+  size?:
+    number;
+
+  error?:
+    string;
+};
+
+
+type ClueAudioCommand = {
+  action:
+    "play" |
+    "stop";
+
+  requestedAction:
+    "play" |
+    "replay" |
+    "stop";
+
+  audioUrl:
+    string;
+
+  clueId:
+    string;
+
+  commandId:
+    string;
+
+  issuedAt:
+    number;
+};
 
 type GameState = {
   hostId: string;
@@ -393,6 +440,9 @@ function createBlankCategories(
               "",
 
             imageUrl:
+              "",
+
+            audioUrl:
               "",
 
             dailyDouble:
@@ -1119,6 +1169,103 @@ function App() {
     );
 
 
+  /*
+   * --------------------------------
+   * CLUE AUDIO UPLOAD STATE
+   * --------------------------------
+   */
+
+  const [
+    uploadingClueAudio,
+    setUploadingClueAudio,
+  ] =
+    useState<
+      string | null
+    >(
+      null
+    );
+
+
+  const [
+    clueAudioMessages,
+    setClueAudioMessages,
+  ] =
+    useState<
+      Record<
+        string,
+        string
+      >
+    >(
+      {}
+    );
+
+
+  /*
+   * --------------------------------
+   * SYNCHRONIZED CLUE AUDIO STATE
+   * --------------------------------
+   */
+
+  const [
+    clueAudioPlaybackStatus,
+    setClueAudioPlaybackStatus,
+  ] =
+    useState<
+      | "idle"
+      | "loading"
+      | "playing"
+      | "stopped"
+      | "muted"
+      | "error"
+    >(
+      "idle"
+    );
+
+
+  const clueAudioSourceRef =
+    useRef<
+      AudioBufferSourceNode |
+      null
+    >(
+      null
+    );
+
+
+  const clueAudioBufferRef =
+    useRef<{
+      url:
+        string;
+
+      buffer:
+        AudioBuffer;
+    } | null>(
+      null
+    );
+
+
+  const clueAudioLoadRef =
+    useRef<{
+      url:
+        string;
+
+      promise:
+        Promise<
+          AudioBuffer |
+          null
+        >;
+    } | null>(
+      null
+    );
+
+
+  const lastClueAudioCommandRef =
+    useRef<
+      string |
+      null
+    >(
+      null
+    );
+
   const socketRef =
     useRef<
       Socket | null
@@ -1745,7 +1892,7 @@ function App() {
 
         showFeedback(
           "daily_double",
-          "✨ DAILY DOUBLE ✨",
+          "Ã¢Å“Â¨ DAILY DOUBLE Ã¢Å“Â¨",
           1200
         );
       }
@@ -1793,7 +1940,7 @@ function App() {
 
         showFeedback(
           "incorrect",
-          "✕ INCORRECT",
+          "Ã¢Å“â€¢ INCORRECT",
           850
         );
       }
@@ -1866,7 +2013,7 @@ function App() {
 
           showFeedback(
             "correct",
-            "✓ CORRECT",
+            "Ã¢Å“â€œ CORRECT",
             850
           );
         }
@@ -1934,7 +2081,7 @@ function App() {
 
           showFeedback(
             "correct",
-            "✓ DAILY DOUBLE CORRECT",
+            "Ã¢Å“â€œ DAILY DOUBLE CORRECT",
             950
           );
         } else if (
@@ -1950,7 +2097,7 @@ function App() {
 
           showFeedback(
             "incorrect",
-            "✕ DAILY DOUBLE",
+            "Ã¢Å“â€¢ DAILY DOUBLE",
             950
           );
         }
@@ -1984,7 +2131,7 @@ function App() {
 
         showFeedback(
           "ready",
-          "🔴 BUZZERS OPEN",
+          "Ã°Å¸â€Â´ BUZZERS OPEN",
           650
         );
       }
@@ -2014,7 +2161,7 @@ function App() {
         showFeedback(
           "buzz",
 
-          `🔔 ${
+          `Ã°Å¸â€â€ ${
             gameState
               .buzzer
               .winner
@@ -2044,7 +2191,7 @@ function App() {
 
             showFeedback(
               "final",
-              "🏆 FINAL ROUND",
+              "Ã°Å¸Ââ€  FINAL ROUND",
               1200
             );
           };
@@ -2122,7 +2269,7 @@ function App() {
 
           showFeedback(
             "correct",
-            "✓ CORRECT",
+            "Ã¢Å“â€œ CORRECT",
             850
           );
         }
@@ -2138,7 +2285,7 @@ function App() {
 
           showFeedback(
             "incorrect",
-            "✕ INCORRECT",
+            "Ã¢Å“â€¢ INCORRECT",
             850
           );
         }
@@ -2161,7 +2308,7 @@ function App() {
 
         showFeedback(
           "complete",
-          "🏆 GAME COMPLETE",
+          "Ã°Å¸Ââ€  GAME COMPLETE",
           1500
         );
       }
@@ -2433,7 +2580,7 @@ function App() {
               }
 
               setStatus(
-                "Ready to play! ✓"
+                "Ready to play! Ã¢Å“â€œ"
               );
 
               socket.emit(
@@ -2963,6 +3110,334 @@ function App() {
   }
 
 
+  function stopLocalClueAudio() {
+    const source =
+      clueAudioSourceRef.current;
+
+
+    if (source) {
+      try {
+        source.stop();
+      }
+      catch {
+        /*
+         * Source may already have
+         * naturally ended.
+         */
+      }
+
+      try {
+        source.disconnect();
+      }
+      catch {
+        // Already disconnected.
+      }
+    }
+
+
+    clueAudioSourceRef.current =
+      null;
+  }
+
+
+  async function loadClueAudioBuffer(
+    audioUrl:
+      string
+  ) {
+    const cached =
+      clueAudioBufferRef.current;
+
+
+    if (
+      cached &&
+      cached.url ===
+        audioUrl
+    ) {
+      return cached.buffer;
+    }
+
+
+    const loading =
+      clueAudioLoadRef.current;
+
+
+    if (
+      loading &&
+      loading.url ===
+        audioUrl
+    ) {
+      return await loading.promise;
+    }
+
+
+    const promise =
+      (
+        async () => {
+          const context =
+            ensureAudioContext();
+
+
+          if (!context) {
+            return null;
+          }
+
+
+          try {
+            const response =
+              await fetch(
+                audioUrl
+              );
+
+
+            if (!response.ok) {
+              throw new Error(
+                `Audio request failed: ${response.status}`
+              );
+            }
+
+
+            const bytes =
+              await response
+                .arrayBuffer();
+
+
+            const buffer =
+              await context
+                .decodeAudioData(
+                  bytes.slice(
+                    0
+                  )
+                );
+
+
+            clueAudioBufferRef.current = {
+              url:
+                audioUrl,
+
+              buffer,
+            };
+
+
+            return buffer;
+          }
+          catch (
+            error
+          ) {
+            console.error(
+              "Could not load clue audio:",
+              error
+            );
+
+            return null;
+          }
+          finally {
+            if (
+              clueAudioLoadRef
+                .current
+                ?.url ===
+              audioUrl
+            ) {
+              clueAudioLoadRef.current =
+                null;
+            }
+          }
+        }
+      )();
+
+
+    clueAudioLoadRef.current = {
+      url:
+        audioUrl,
+
+      promise,
+    };
+
+
+    return await promise;
+  }
+
+
+  async function playSynchronizedClueAudio(
+    command:
+      ClueAudioCommand
+  ) {
+    if (!soundEnabled) {
+      stopLocalClueAudio();
+
+      setClueAudioPlaybackStatus(
+        "muted"
+      );
+
+      return;
+    }
+
+
+    setClueAudioPlaybackStatus(
+      "loading"
+    );
+
+
+    const context =
+      ensureAudioContext();
+
+
+    if (!context) {
+      setClueAudioPlaybackStatus(
+        "error"
+      );
+
+      return;
+    }
+
+
+    /*
+     * The Sound button normally
+     * unlocks the AudioContext.
+     *
+     * Resume again here in case the
+     * browser suspended it.
+     */
+    if (
+      context.state ===
+      "suspended"
+    ) {
+      try {
+        await context.resume();
+      }
+      catch {
+        setClueAudioPlaybackStatus(
+          "error"
+        );
+
+        return;
+      }
+    }
+
+
+    const buffer =
+      await loadClueAudioBuffer(
+        command.audioUrl
+      );
+
+
+    if (!buffer) {
+      setClueAudioPlaybackStatus(
+        "error"
+      );
+
+      return;
+    }
+
+
+    stopLocalClueAudio();
+
+
+    /*
+     * Compensate for network and
+     * decoding delay using the
+     * server-issued timestamp.
+     *
+     * A client that receives the
+     * command slightly later jumps
+     * forward by that same amount.
+     */
+    const elapsedSeconds =
+      Math.max(
+        0,
+
+        (
+          Date.now() -
+          command.issuedAt
+        ) /
+        1000
+      );
+
+
+    if (
+      elapsedSeconds >=
+      buffer.duration
+    ) {
+      setClueAudioPlaybackStatus(
+        "stopped"
+      );
+
+      return;
+    }
+
+
+    const source =
+      context
+        .createBufferSource();
+
+
+    source.buffer =
+      buffer;
+
+
+    source.connect(
+      context.destination
+    );
+
+
+    source.onended =
+      () => {
+        if (
+          clueAudioSourceRef
+            .current ===
+          source
+        ) {
+          clueAudioSourceRef.current =
+            null;
+
+          setClueAudioPlaybackStatus(
+            "idle"
+          );
+        }
+      };
+
+
+    clueAudioSourceRef.current =
+      source;
+
+
+    source.start(
+      0,
+      elapsedSeconds
+    );
+
+
+    setClueAudioPlaybackStatus(
+      "playing"
+    );
+  }
+
+
+  function sendClueAudioControl(
+    action:
+      | "play"
+      | "replay"
+      | "stop"
+  ) {
+    const socket =
+      socketRef.current;
+
+
+    if (
+      !socket ||
+      !socket.connected
+    ) {
+      return;
+    }
+
+
+    socket.emit(
+      "control_clue_audio",
+      {
+        action,
+      }
+    );
+  }
+
   function getClueImageKey(
     round:
       1 | 2,
@@ -3279,7 +3754,7 @@ function App() {
           ...current,
 
           [imageKey]:
-            "Image uploaded ✓",
+            "Image uploaded Ã¢Å“â€œ",
         })
       );
     }
@@ -3305,6 +3780,349 @@ function App() {
     }
     finally {
       setUploadingClueImage(
+        null
+      );
+    }
+  }
+
+
+  function getClueAudioKey(
+    round:
+      1 | 2,
+
+    categoryIndex:
+      number,
+
+    clueIndex:
+      number
+  ) {
+    return `${round}-${categoryIndex}-${clueIndex}`;
+  }
+
+
+  function updateClueAudioUrl(
+    categoryIndex:
+      number,
+
+    clueIndex:
+      number,
+
+    audioUrl:
+      string,
+
+    round:
+      1 | 2 =
+      1
+  ) {
+    const categoryKey:
+      | "categories"
+      | "round2Categories" =
+        round ===
+          2
+          ? "round2Categories"
+          : "categories";
+
+
+    setEditorConfig(
+      (
+        current
+      ) => ({
+        ...current,
+
+        [categoryKey]:
+          current[
+            categoryKey
+          ].map(
+            (
+              category,
+              currentCategoryIndex
+            ) => {
+              if (
+                currentCategoryIndex !==
+                categoryIndex
+              ) {
+                return category;
+              }
+
+
+              return {
+                ...category,
+
+                clues:
+                  category.clues.map(
+                    (
+                      clue,
+                      currentClueIndex
+                    ) =>
+                      currentClueIndex ===
+                      clueIndex
+                        ? {
+                            ...clue,
+                            audioUrl,
+                          }
+                        : clue
+                  ),
+              };
+            }
+          ),
+      })
+    );
+
+
+    setDirty(
+      audioUrl
+        ? "Clue audio added"
+        : "Clue audio removed"
+    );
+  }
+
+
+  async function uploadClueAudio(
+    file:
+      File,
+
+    categoryIndex:
+      number,
+
+    clueIndex:
+      number,
+
+    round:
+      1 | 2 =
+      1
+  ) {
+    const socket =
+      socketRef.current;
+
+    const audioKey =
+      getClueAudioKey(
+        round,
+        categoryIndex,
+        clueIndex
+      );
+
+
+    const allowedTypes =
+      new Set([
+        "audio/mpeg",
+        "audio/wav",
+        "audio/x-wav",
+        "audio/ogg",
+        "audio/webm",
+      ]);
+
+
+    if (
+      !allowedTypes.has(
+        file.type
+      )
+    ) {
+      setClueAudioMessages(
+        (
+          current
+        ) => ({
+          ...current,
+
+          [audioKey]:
+            "Use MP3, WAV, OGG, or WebM audio.",
+        })
+      );
+
+      return;
+    }
+
+
+    if (
+      file.size >
+      5 *
+      1024 *
+      1024
+    ) {
+      setClueAudioMessages(
+        (
+          current
+        ) => ({
+          ...current,
+
+          [audioKey]:
+            "Audio must be 5 MB or smaller.",
+        })
+      );
+
+      return;
+    }
+
+
+    if (
+      !socket ||
+      !socket.connected
+    ) {
+      setClueAudioMessages(
+        (
+          current
+        ) => ({
+          ...current,
+
+          [audioKey]:
+            "BuzzBoard is not connected.",
+        })
+      );
+
+      return;
+    }
+
+
+    setUploadingClueAudio(
+      audioKey
+    );
+
+
+    setClueAudioMessages(
+      (
+        current
+      ) => ({
+        ...current,
+
+        [audioKey]:
+          "Uploading audio...",
+      })
+    );
+
+
+    try {
+      const data =
+        await file.arrayBuffer();
+
+
+      const response =
+        await new Promise<
+          ClueAudioUploadResponse
+        >(
+          (
+            resolve
+          ) => {
+            let finished =
+              false;
+
+
+            const timer =
+              window.setTimeout(
+                () => {
+                  if (finished) {
+                    return;
+                  }
+
+                  finished =
+                    true;
+
+                  resolve({
+                    ok:
+                      false,
+
+                    error:
+                      "Audio upload timed out.",
+                  });
+                },
+
+                15_000
+              );
+
+
+            socket.emit(
+              "upload_clue_audio",
+
+              {
+                mimeType:
+                  file.type,
+
+                data,
+              },
+
+              (
+                result:
+                  ClueAudioUploadResponse
+              ) => {
+                if (finished) {
+                  return;
+                }
+
+                finished =
+                  true;
+
+                window.clearTimeout(
+                  timer
+                );
+
+                resolve(
+                  result
+                );
+              }
+            );
+          }
+        );
+
+
+      if (
+        !response.ok ||
+        !response.audioUrl
+      ) {
+        setClueAudioMessages(
+          (
+            current
+          ) => ({
+            ...current,
+
+            [audioKey]:
+              response.error ||
+              "Audio upload failed.",
+          })
+        );
+
+        return;
+      }
+
+
+      updateClueAudioUrl(
+        categoryIndex,
+        clueIndex,
+        response.audioUrl,
+        round
+      );
+
+
+      setClueAudioMessages(
+        (
+          current
+        ) => ({
+          ...current,
+
+          [audioKey]:
+            "Audio uploaded âœ“",
+        })
+      );
+    }
+    catch (
+      error
+    ) {
+      console.error(
+        "Clue audio upload failed:",
+        error
+      );
+
+
+      setClueAudioMessages(
+        (
+          current
+        ) => ({
+          ...current,
+
+          [audioKey]:
+            "Audio upload failed.",
+        })
+      );
+    }
+    finally {
+      setUploadingClueAudio(
         null
       );
     }
@@ -3395,8 +4213,8 @@ function App() {
 
     const valueLabel =
       isRoundTwo
-        ? "$200 • $400 • $600 • $800 • $1000"
-        : "$100 • $200 • $300 • $400 • $500";
+        ? "$200 Ã¢â‚¬Â¢ $400 Ã¢â‚¬Â¢ $600 Ã¢â‚¬Â¢ $800 Ã¢â‚¬Â¢ $1000"
+        : "$100 Ã¢â‚¬Â¢ $200 Ã¢â‚¬Â¢ $300 Ã¢â‚¬Â¢ $400 Ã¢â‚¬Â¢ $500";
 
     return (
       <div
@@ -3512,7 +4330,7 @@ function App() {
                             />
 
                             <span>
-                              ✨ Daily Double
+                              Ã¢Å“Â¨ Daily Double
                             </span>
                           </label>
 
@@ -3624,6 +4442,125 @@ function App() {
                                 {
                                   clueImageMessages[
                                     getClueImageKey(
+                                      round,
+                                      categoryIndex,
+                                      clueIndex
+                                    )
+                                  ]
+                                }
+                              </small>
+                            )}
+                          </div>
+
+
+                          <div className="clue-audio-editor">
+                            <div className="clue-audio-editor-label">
+                              <span>
+                                Audio
+                              </span>
+
+                              <small>
+                                Optional
+                              </small>
+                            </div>
+
+
+                            {clue.audioUrl ? (
+                              <div className="clue-audio-preview">
+                                <audio
+                                  src={
+                                    clue.audioUrl
+                                  }
+                                  controls
+                                  preload="metadata"
+                                />
+
+                                <button
+                                  type="button"
+                                  className="remove-clue-audio-button"
+                                  onClick={() =>
+                                    updateClueAudioUrl(
+                                      categoryIndex,
+                                      clueIndex,
+                                      "",
+                                      round
+                                    )
+                                  }
+                                >
+                                  Remove Audio
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="clue-audio-empty">
+                                No audio selected
+                              </div>
+                            )}
+
+
+                            <label className="clue-audio-upload-button">
+                              {
+                                uploadingClueAudio ===
+                                getClueAudioKey(
+                                  round,
+                                  categoryIndex,
+                                  clueIndex
+                                )
+                                  ? "Uploading..."
+                                  : clue.audioUrl
+                                    ? "Replace Audio"
+                                    : "Choose Audio"
+                              }
+
+                              <input
+                                type="file"
+                                accept="audio/mpeg,audio/wav,audio/x-wav,audio/ogg,audio/webm"
+                                disabled={
+                                  uploadingClueAudio !==
+                                  null
+                                }
+                                onChange={(
+                                  event
+                                ) => {
+                                  const input =
+                                    event.currentTarget;
+
+                                  const file =
+                                    input.files?.[
+                                      0
+                                    ];
+
+
+                                  input.value =
+                                    "";
+
+
+                                  if (!file) {
+                                    return;
+                                  }
+
+
+                                  void uploadClueAudio(
+                                    file,
+                                    categoryIndex,
+                                    clueIndex,
+                                    round
+                                  );
+                                }}
+                              />
+                            </label>
+
+
+                            {clueAudioMessages[
+                              getClueAudioKey(
+                                round,
+                                categoryIndex,
+                                clueIndex
+                              )
+                            ] && (
+                              <small className="clue-audio-message">
+                                {
+                                  clueAudioMessages[
+                                    getClueAudioKey(
                                       round,
                                       categoryIndex,
                                       clueIndex
@@ -4323,8 +5260,8 @@ function App() {
     >
       <span>
         {soundEnabled
-          ? "🔊"
-          : "🔇"}
+          ? "Ã°Å¸â€Å "
+          : "Ã°Å¸â€â€¡"}
       </span>
 
       <strong>
@@ -4428,6 +5365,187 @@ function App() {
    * --------------------------------
    */
 
+  /*
+   * --------------------------------
+   * CLUE AUDIO SOCKET LISTENER
+   * --------------------------------
+   */
+
+  useEffect(
+    () => {
+      const socket =
+        socketRef.current;
+
+
+      if (!socket) {
+        return;
+      }
+
+
+      const handleClueAudioCommand =
+        (
+          command:
+            ClueAudioCommand
+        ) => {
+          if (
+            !command ||
+            typeof command.commandId !==
+              "string"
+          ) {
+            return;
+          }
+
+
+          /*
+           * Prevent an accidental
+           * duplicate Socket.IO event
+           * from replaying the clip.
+           */
+          if (
+            lastClueAudioCommandRef
+              .current ===
+            command.commandId
+          ) {
+            return;
+          }
+
+
+          lastClueAudioCommandRef.current =
+            command.commandId;
+
+
+          if (
+            command.action ===
+            "stop"
+          ) {
+            stopLocalClueAudio();
+
+            setClueAudioPlaybackStatus(
+              "stopped"
+            );
+
+            return;
+          }
+
+
+          void playSynchronizedClueAudio(
+            command
+          );
+        };
+
+
+      socket.on(
+        "clue_audio_command",
+        handleClueAudioCommand
+      );
+
+
+      return () => {
+        socket.off(
+          "clue_audio_command",
+          handleClueAudioCommand
+        );
+      };
+    },
+
+    [
+      soundEnabled,
+      gameState?.phase,
+      gameState?.currentClue
+        ?.audioUrl,
+    ]
+  );
+
+
+  /*
+   * --------------------------------
+   * PRELOAD ACTIVE CLUE AUDIO
+   * --------------------------------
+   *
+   * Preloading happens only once the
+   * actual clue is visible.
+   *
+   * Daily Double select/wager phases
+   * intentionally do not preload it.
+   */
+
+  useEffect(
+    () => {
+      stopLocalClueAudio();
+
+      setClueAudioPlaybackStatus(
+        soundEnabled
+          ? "idle"
+          : "muted"
+      );
+
+
+      const audioUrl =
+        gameState
+          ?.currentClue
+          ?.audioUrl ??
+        "";
+
+
+      const mayPlay =
+        gameState?.phase ===
+          "clue" ||
+        gameState?.phase ===
+          "daily_double_clue";
+
+
+      if (
+        !soundEnabled ||
+        !mayPlay ||
+        !audioUrl
+      ) {
+        return;
+      }
+
+
+      let cancelled =
+        false;
+
+
+      void (
+        async () => {
+          const buffer =
+            await loadClueAudioBuffer(
+              audioUrl
+            );
+
+
+          if (
+            cancelled ||
+            !buffer
+          ) {
+            return;
+          }
+
+
+          setClueAudioPlaybackStatus(
+            "idle"
+          );
+        }
+      )();
+
+
+      return () => {
+        cancelled =
+          true;
+
+        stopLocalClueAudio();
+      };
+    },
+
+    [
+      soundEnabled,
+      gameState?.phase,
+      gameState?.currentClue
+        ?.audioUrl,
+    ]
+  );
+
   const hostToolsPanel =
     isHost &&
     gameState.phase !==
@@ -4436,7 +5554,7 @@ function App() {
         <div className="host-tools-heading">
           <div>
             <span>
-              🛠 HOST TOOLS
+              Ã°Å¸â€ºÂ  HOST TOOLS
             </span>
 
             <h2>
@@ -4549,7 +5667,7 @@ function App() {
               !hostSelectedPlayerId
             }
           >
-            − Subtract
+            Ã¢Ë†â€™ Subtract
           </button>
         </div>
 
@@ -4564,7 +5682,7 @@ function App() {
               !canReopenBuzzers
             }
           >
-            🔓 Reopen Buzzers
+            Ã°Å¸â€â€œ Reopen Buzzers
           </button>
 
           <button
@@ -4576,7 +5694,7 @@ function App() {
               !canSkipClue
             }
           >
-            ⏭ Skip / End Clue
+            Ã¢ÂÂ­ Skip / End Clue
           </button>
 
           <button
@@ -4602,7 +5720,7 @@ function App() {
                 : "Nothing to undo"
             }
           >
-            ↶ Undo Last Action
+            Ã¢â€ Â¶ Undo Last Action
           </button>
         </div>
 
@@ -4653,7 +5771,7 @@ function App() {
 
               {player.id ===
                 gameState.hostId &&
-                " 👑"}
+                " Ã°Å¸â€˜â€˜"}
             </span>
 
             <strong>
@@ -4696,7 +5814,7 @@ function App() {
           {
             clue.categoryName
           }{" "}
-          • $
+          Ã¢â‚¬Â¢ $
           {
             clue.value
           }
@@ -4718,7 +5836,7 @@ function App() {
           }
         >
           <div className="daily-double-label">
-            ✨ DAILY DOUBLE ✨
+            Ã¢Å“Â¨ DAILY DOUBLE Ã¢Å“Â¨
           </div>
 
           <h2>
@@ -4802,7 +5920,7 @@ function App() {
           {
             clue.categoryName
           }{" "}
-          • $
+          Ã¢â‚¬Â¢ $
           {
             clue.value
           }
@@ -4816,7 +5934,7 @@ function App() {
 
         <section className="daily-double-screen">
           <div className="daily-double-label">
-            ✨ DAILY DOUBLE ✨
+            Ã¢Å“Â¨ DAILY DOUBLE Ã¢Å“Â¨
           </div>
 
           <h2>
@@ -4925,7 +6043,7 @@ function App() {
           {
             clue.categoryName
           }{" "}
-          • Wager{" "}
+          Ã¢â‚¬Â¢ Wager{" "}
           {formatScore(
             gameState
               .dailyDouble
@@ -4942,7 +6060,7 @@ function App() {
 
         <section className="daily-double-screen daily-double-clue-screen">
           <div className="daily-double-label">
-            ✨ DAILY DOUBLE ✨
+            Ã¢Å“Â¨ DAILY DOUBLE Ã¢Å“Â¨
           </div>
 
           <p className="daily-double-contestant">
@@ -4958,7 +6076,7 @@ function App() {
             <h2 className="daily-double-question">
               {clue.question}
             </h2>
-          ) : !clue.imageUrl ? (
+          ) : !clue.imageUrl && !clue.audioUrl ? (
             <h2 className="daily-double-question">
               (No clue text entered)
             </h2>
@@ -4980,6 +6098,86 @@ function App() {
           )}
 
 
+          {clue.audioUrl && (
+            <section className="clue-audio-game-card daily-double-audio-card">
+              <div className="clue-audio-game-label">
+                🔊 AUDIO CLUE
+              </div>
+
+
+              <p className="clue-audio-game-status">
+                {
+                  !soundEnabled
+                    ? "Sound is off. Enable Sound to hear this clue."
+                    : clueAudioPlaybackStatus ===
+                        "playing"
+                      ? "Playing..."
+                      : clueAudioPlaybackStatus ===
+                          "loading"
+                        ? "Loading audio..."
+                        : clueAudioPlaybackStatus ===
+                            "error"
+                          ? "Audio could not start. Toggle Sound and try again."
+                          : clueAudioPlaybackStatus ===
+                              "stopped"
+                            ? "Stopped"
+                            : isHost
+                              ? "Ready to play"
+                              : "Waiting for the host..."
+                }
+              </p>
+
+
+              {isHost ? (
+                <div className="clue-audio-host-controls">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      sendClueAudioControl(
+                        "play"
+                      )
+                    }
+                    disabled={
+                      !soundEnabled
+                    }
+                  >
+                    ▶ Play Audio
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      sendClueAudioControl(
+                        "replay"
+                      )
+                    }
+                    disabled={
+                      !soundEnabled
+                    }
+                  >
+                    ↻ Replay
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      sendClueAudioControl(
+                        "stop"
+                      )
+                    }
+                  >
+                    ■ Stop
+                  </button>
+                </div>
+              ) : (
+                <small className="clue-audio-player-note">
+                  Playback is controlled
+                  by the host.
+                </small>
+              )}
+            </section>
+          )}
+
           {answerTimer}
 
           {isHost &&
@@ -4999,7 +6197,7 @@ function App() {
 
           {isDailyDoublePlayer ? (
             <p className="daily-double-your-turn">
-              🎯 This is your Daily
+              Ã°Å¸Å½Â¯ This is your Daily
               Double. Answer aloud in
               Discord.
             </p>
@@ -5024,7 +6222,7 @@ function App() {
                   judgeDailyDoubleCorrect
                 }
               >
-                ✓ Correct
+                Ã¢Å“â€œ Correct
               </button>
 
               <button
@@ -5034,7 +6232,7 @@ function App() {
                   judgeDailyDoubleIncorrect
                 }
               >
-                ✕ Incorrect
+                Ã¢Å“â€¢ Incorrect
               </button>
             </div>
           )}
@@ -5119,7 +6317,7 @@ function App() {
             .ownWagerLocked ? (
             <div className="final-locked-card">
               <span>
-                🔒 Wager Locked
+                Ã°Å¸â€â€™ Wager Locked
               </span>
 
               <strong>
@@ -5197,7 +6395,7 @@ function App() {
                     <strong>
                       {player
                         .wagerLocked
-                        ? "✓ Wager Locked"
+                        ? "Ã¢Å“â€œ Wager Locked"
                         : "Choosing Wager..."}
                     </strong>
                   </div>
@@ -5290,7 +6488,7 @@ function App() {
             .ownAnswerLocked ? (
             <div className="final-locked-card">
               <span>
-                🔒 Answer Locked
+                Ã°Å¸â€â€™ Answer Locked
               </span>
 
               <strong>
@@ -5360,7 +6558,7 @@ function App() {
                     <strong>
                       {player
                         .answerLocked
-                        ? "✓ Answer Locked"
+                        ? "Ã¢Å“â€œ Answer Locked"
                         : "Writing Answer..."}
                     </strong>
                   </div>
@@ -5515,7 +6713,7 @@ function App() {
                       .judged ===
                       true && (
                       <div className="final-judged-correct">
-                        ✓ Correct
+                        Ã¢Å“â€œ Correct
                       </div>
                     )}
 
@@ -5523,7 +6721,7 @@ function App() {
                       .judged ===
                       false && (
                       <div className="final-judged-incorrect">
-                        ✕ Incorrect
+                        Ã¢Å“â€¢ Incorrect
                       </div>
                     )}
 
@@ -5542,7 +6740,7 @@ function App() {
                               )
                             }
                           >
-                            ✓ Correct
+                            Ã¢Å“â€œ Correct
                           </button>
 
                           <button
@@ -5555,7 +6753,7 @@ function App() {
                               )
                             }
                           >
-                            ✕ Incorrect
+                            Ã¢Å“â€¢ Incorrect
                           </button>
                         </div>
                       )}
@@ -5646,7 +6844,7 @@ function App() {
         >
           <div className="final-heading">
             <span>
-              🏁 GAME COMPLETE
+              Ã°Å¸ÂÂ GAME COMPLETE
             </span>
 
             <h2>
@@ -5658,7 +6856,7 @@ function App() {
             {isTie ? (
               <>
                 <span>
-                  🏆 TIE GAME 🏆
+                  Ã°Å¸Ââ€  TIE GAME Ã°Å¸Ââ€ 
                 </span>
 
                 <strong>
@@ -5685,7 +6883,7 @@ function App() {
               0 ? (
               <>
                 <span>
-                  🏆 WINNER
+                  Ã°Å¸Ââ€  WINNER
                 </span>
 
                 <strong>
@@ -5734,13 +6932,13 @@ function App() {
                   <span className="final-place">
                     {index ===
                     0
-                      ? "🥇"
+                      ? "Ã°Å¸Â¥â€¡"
                       : index ===
                           1
-                        ? "🥈"
+                        ? "Ã°Å¸Â¥Ë†"
                         : index ===
                             2
-                          ? "🥉"
+                          ? "Ã°Å¸Â¥â€°"
                           : `#${index + 1}`}
                   </span>
 
@@ -5808,7 +7006,7 @@ function App() {
 
         <section className="round-break-screen">
           <div className="round-break-label">
-            ✨ ROUND 1 COMPLETE ✨
+            Ã¢Å“Â¨ ROUND 1 COMPLETE Ã¢Å“Â¨
           </div>
 
           <h2>
@@ -5827,7 +7025,7 @@ function App() {
             </span>
 
             <strong>
-              $200 • $400 • $600 • $800 • $1000
+              $200 Ã¢â‚¬Â¢ $400 Ã¢â‚¬Â¢ $600 Ã¢â‚¬Â¢ $800 Ã¢â‚¬Â¢ $1000
             </strong>
           </div>
 
@@ -5881,7 +7079,7 @@ function App() {
           {
             clue.categoryName
           }{" "}
-          • $
+          Ã¢â‚¬Â¢ $
           {
             clue.value
           }
@@ -5898,7 +7096,7 @@ function App() {
             <h2>
               {clue.question}
             </h2>
-          ) : !clue.imageUrl ? (
+          ) : !clue.imageUrl && !clue.audioUrl ? (
             <h2>
               (No clue text entered)
             </h2>
@@ -5919,6 +7117,86 @@ function App() {
             </div>
           )}
 
+
+          {clue.audioUrl && (
+            <section className="clue-audio-game-card">
+              <div className="clue-audio-game-label">
+                🔊 AUDIO CLUE
+              </div>
+
+
+              <p className="clue-audio-game-status">
+                {
+                  !soundEnabled
+                    ? "Sound is off. Enable Sound to hear this clue."
+                    : clueAudioPlaybackStatus ===
+                        "playing"
+                      ? "Playing..."
+                      : clueAudioPlaybackStatus ===
+                          "loading"
+                        ? "Loading audio..."
+                        : clueAudioPlaybackStatus ===
+                            "error"
+                          ? "Audio could not start. Toggle Sound and try again."
+                          : clueAudioPlaybackStatus ===
+                              "stopped"
+                            ? "Stopped"
+                            : isHost
+                              ? "Ready to play"
+                              : "Waiting for the host..."
+                }
+              </p>
+
+
+              {isHost ? (
+                <div className="clue-audio-host-controls">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      sendClueAudioControl(
+                        "play"
+                      )
+                    }
+                    disabled={
+                      !soundEnabled
+                    }
+                  >
+                    ▶ Play Audio
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      sendClueAudioControl(
+                        "replay"
+                      )
+                    }
+                    disabled={
+                      !soundEnabled
+                    }
+                  >
+                    ↻ Replay
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      sendClueAudioControl(
+                        "stop"
+                      )
+                    }
+                  >
+                    ■ Stop
+                  </button>
+                </div>
+              ) : (
+                <small className="clue-audio-player-note">
+                  Playback is controlled
+                  by the host.
+                </small>
+              )}
+            </section>
+          )}
 
           {isHost &&
             clue.answer !==
@@ -6000,7 +7278,7 @@ function App() {
           {lockedOut &&
             !winner && (
               <p className="locked-message">
-                ❌ You are locked
+                Ã¢ÂÅ’ You are locked
                 out for this clue.
               </p>
             )}
@@ -6010,7 +7288,7 @@ function App() {
             .open && (
             <>
               <p className="buzzer-status">
-                🔴 BUZZERS OPEN
+                Ã°Å¸â€Â´ BUZZERS OPEN
               </p>
 
               {buzzerTimer}
@@ -6048,7 +7326,7 @@ function App() {
               }
             >
               <h2>
-                🔔{" "}
+                Ã°Å¸â€â€{" "}
                 {
                   winner.name
                 }
@@ -6063,8 +7341,8 @@ function App() {
               {answerTimerPlayer && (
                 <p className="answering-player">
                   {currentUserIsAnswering
-                    ? "🎤 Your turn to answer!"
-                    : `🎤 ${answerTimerPlayer.name} is answering...`}
+                    ? "Ã°Å¸Å½Â¤ Your turn to answer!"
+                    : `Ã°Å¸Å½Â¤ ${answerTimerPlayer.name} is answering...`}
                 </p>
               )}
 
@@ -6077,7 +7355,7 @@ function App() {
                       judgeCorrect
                     }
                   >
-                    ✓ Correct
+                    Ã¢Å“â€œ Correct
                   </button>
 
                   <button
@@ -6087,7 +7365,7 @@ function App() {
                       judgeIncorrect
                     }
                   >
-                    ✕ Incorrect
+                    Ã¢Å“â€¢ Incorrect
                   </button>
                 </div>
               )}
@@ -6163,8 +7441,8 @@ function App() {
             {gameState
               .currentRound ===
             2
-              ? "$200 • $400 • $600 • $800 • $1000"
-              : "$100 • $200 • $300 • $400 • $500"}
+              ? "$200 Ã¢â‚¬Â¢ $400 Ã¢â‚¬Â¢ $600 Ã¢â‚¬Â¢ $800 Ã¢â‚¬Â¢ $1000"
+              : "$100 Ã¢â‚¬Â¢ $200 Ã¢â‚¬Â¢ $300 Ã¢â‚¬Â¢ $400 Ã¢â‚¬Â¢ $500"}
           </strong>
         </div>
 
@@ -6174,7 +7452,7 @@ function App() {
 
         {isHost ? (
           <p>
-            👑 Host controls enabled
+            Ã°Å¸â€˜â€˜ Host controls enabled
           </p>
         ) : (
           <p>
@@ -6311,7 +7589,7 @@ function App() {
                         player.id
                       }
                     >
-                      🟢{" "}
+                      Ã°Å¸Å¸Â¢{" "}
                       {
                         player.name
                       }
@@ -6321,7 +7599,7 @@ function App() {
                           .hostId && (
                         <strong>
                           {" "}
-                          👑 HOST
+                          Ã°Å¸â€˜â€˜ HOST
                         </strong>
                       )}
                     </li>
@@ -6438,7 +7716,7 @@ function App() {
                           {
                             game.categoryCount
                           }{" "}
-                          categories •{" "}
+                          categories Ã¢â‚¬Â¢{" "}
                           {
                             game.clueCount
                           }{" "}
@@ -6570,7 +7848,7 @@ function App() {
             <div className="final-editor">
               <div className="final-editor-heading">
                 <span>
-                  🏆 FINAL ROUND
+                  Ã°Å¸Ââ€  FINAL ROUND
                 </span>
 
                 <h2>

@@ -532,3 +532,321 @@ export async function loadClueImage(
 
 
 /* ===== BUZZBOARD CLUE IMAGE STORAGE END ===== */
+
+/* ===== BUZZBOARD CLUE AUDIO STORAGE START ===== */
+
+
+/*
+ * --------------------------------
+ * CLUE AUDIO STORAGE
+ * --------------------------------
+ *
+ * Local:
+ *   server/data/audio/
+ *
+ * Railway:
+ *   <persistent volume>/audio/
+ *
+ * Saved games store only audioUrl.
+ */
+
+export const CLUE_AUDIO_MAX_BYTES =
+  5 *
+  1024 *
+  1024;
+
+
+const clueAudioDirectory =
+  path.join(
+    dataDirectory,
+    "audio"
+  );
+
+
+const clueAudioTypes =
+  new Map([
+    [
+      "audio/mpeg",
+      {
+        extension:
+          "mp3",
+
+        mimeType:
+          "audio/mpeg",
+      },
+    ],
+
+    [
+      "audio/wav",
+      {
+        extension:
+          "wav",
+
+        mimeType:
+          "audio/wav",
+      },
+    ],
+
+    [
+      "audio/x-wav",
+      {
+        extension:
+          "wav",
+
+        mimeType:
+          "audio/wav",
+      },
+    ],
+
+    [
+      "audio/ogg",
+      {
+        extension:
+          "ogg",
+
+        mimeType:
+          "audio/ogg",
+      },
+    ],
+
+    [
+      "audio/webm",
+      {
+        extension:
+          "webm",
+
+        mimeType:
+          "audio/webm",
+      },
+    ],
+  ]);
+
+
+const clueAudioMimeByExtension =
+  new Map([
+    [
+      "mp3",
+      "audio/mpeg",
+    ],
+
+    [
+      "wav",
+      "audio/wav",
+    ],
+
+    [
+      "ogg",
+      "audio/ogg",
+    ],
+
+    [
+      "webm",
+      "audio/webm",
+    ],
+  ]);
+
+
+async function ensureClueAudioStorage() {
+  await ensureStorage();
+
+  await fs.mkdir(
+    clueAudioDirectory,
+    {
+      recursive:
+        true,
+    }
+  );
+}
+
+
+function getSafeClueAudioFilename(
+  value
+) {
+  if (
+    typeof value !==
+    "string"
+  ) {
+    return null;
+  }
+
+
+  const filename =
+    value.trim();
+
+
+  /*
+   * Only BuzzBoard-generated UUID
+   * filenames are accepted.
+   */
+  if (
+    !/^[0-9a-f-]{36}\.(mp3|wav|ogg|webm)$/i.test(
+      filename
+    )
+  ) {
+    return null;
+  }
+
+
+  return filename;
+}
+
+
+export async function saveClueAudio(
+  contents,
+  mimeType
+) {
+  const audioType =
+    clueAudioTypes.get(
+      mimeType
+    );
+
+
+  if (!audioType) {
+    throw new Error(
+      "Unsupported clue audio type."
+    );
+  }
+
+
+  if (
+    !Buffer.isBuffer(
+      contents
+    )
+  ) {
+    throw new Error(
+      "Clue audio contents must be a Buffer."
+    );
+  }
+
+
+  if (
+    contents.length <=
+    0
+  ) {
+    throw new Error(
+      "Clue audio is empty."
+    );
+  }
+
+
+  if (
+    contents.length >
+    CLUE_AUDIO_MAX_BYTES
+  ) {
+    throw new Error(
+      "Clue audio exceeds the 5 MB limit."
+    );
+  }
+
+
+  await ensureClueAudioStorage();
+
+
+  const filename =
+    `${
+      randomUUID()
+    }.${
+      audioType.extension
+    }`;
+
+
+  const filePath =
+    path.join(
+      clueAudioDirectory,
+      filename
+    );
+
+
+  await fs.writeFile(
+    filePath,
+    contents
+  );
+
+
+  return {
+    filename,
+
+    mimeType:
+      audioType.mimeType,
+
+    size:
+      contents.length,
+  };
+}
+
+
+export async function loadClueAudio(
+  rawFilename
+) {
+  const filename =
+    getSafeClueAudioFilename(
+      rawFilename
+    );
+
+
+  if (!filename) {
+    return null;
+  }
+
+
+  const extension =
+    path.extname(
+      filename
+    )
+      .slice(
+        1
+      )
+      .toLowerCase();
+
+
+  const mimeType =
+    clueAudioMimeByExtension.get(
+      extension
+    );
+
+
+  if (!mimeType) {
+    return null;
+  }
+
+
+  await ensureClueAudioStorage();
+
+
+  const filePath =
+    path.join(
+      clueAudioDirectory,
+      filename
+    );
+
+
+  try {
+    const contents =
+      await fs.readFile(
+        filePath
+      );
+
+
+    return {
+      filename,
+      mimeType,
+      contents,
+
+      size:
+        contents.length,
+    };
+  }
+  catch (error) {
+    if (
+      error?.code ===
+      "ENOENT"
+    ) {
+      return null;
+    }
+
+    throw error;
+  }
+}
+
+
+/* ===== BUZZBOARD CLUE AUDIO STORAGE END ===== */
