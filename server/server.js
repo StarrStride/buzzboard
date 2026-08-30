@@ -3212,7 +3212,7 @@ io.on(
             "library_message",
             {
               message:
-                `"${savedGame.title}" saved ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“`,
+                `"${savedGame.title}" saved \u2713`,
             }
           );
 
@@ -3322,7 +3322,7 @@ io.on(
             "library_message",
             {
               message:
-                `"${savedGame.title}" loaded ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“`,
+                `"${savedGame.title}" loaded \u2713`,
             }
           );
 
