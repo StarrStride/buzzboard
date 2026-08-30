@@ -5710,3 +5710,270 @@ body[data-feedback="complete"]::after {
 
 
 /* ===== BUZZBOARD ROUND 2 UI END ===== */
+
+/* ===== BUZZBOARD DUPLICATE TITLE FIX START ===== */
+
+
+/*
+ * The custom logo already provides
+ * the BuzzBoard branding.
+ *
+ * Hide the old H1 on screens where
+ * that H1 only says "BuzzBoard".
+ */
+
+.game:has(.clue-screen) > h1,
+.game:has(.final-results) > h1 {
+  position: absolute;
+
+  width: 1px;
+  height: 1px;
+
+  padding: 0;
+  margin: -1px;
+
+  overflow: hidden;
+
+  clip:
+    rect(
+      0,
+      0,
+      0,
+      0
+    );
+
+  white-space: nowrap;
+
+  border: 0;
+}
+
+
+/* ===== BUZZBOARD DUPLICATE TITLE FIX END ===== */
+
+
+/* ===== BUZZBOARD END SCREEN POLISH START ===== */
+
+
+/* --------------------------------------------------
+   ROUND BREAK
+-------------------------------------------------- */
+
+.game.round-break-page > h1 {
+  max-width:
+    min(
+      900px,
+      94vw
+    );
+
+  margin:
+    0 auto 10px;
+
+  font-size:
+    clamp(
+      2.5rem,
+      7vw,
+      4.5rem
+    );
+
+  line-height:
+    1.02;
+}
+
+.game.round-break-page > p {
+  margin:
+    0 auto 20px;
+}
+
+
+/* --------------------------------------------------
+   FINAL RESULTS
+-------------------------------------------------- */
+
+.game .final-results {
+  width:
+    min(
+      860px,
+      94%
+    );
+}
+
+
+/*
+ * Give the winner card an intentional
+ * three-part hierarchy:
+ *
+ * WINNER
+ * Player Name
+ * Score
+ */
+
+.winner-banner {
+  padding:
+    30px 24px 32px;
+
+  gap: 0;
+
+  overflow: hidden;
+}
+
+
+.winner-banner > span {
+  display: block;
+
+  margin-bottom:
+    14px;
+
+  line-height:
+    1.2;
+}
+
+
+.winner-banner > strong {
+  display: block;
+
+  max-width:
+    100%;
+
+  margin:
+    0 auto;
+
+  color:
+    #fff8fb;
+
+  font-size:
+    clamp(
+      2.2rem,
+      6vw,
+      3.6rem
+    );
+
+  line-height:
+    1.05;
+
+  overflow-wrap:
+    anywhere;
+}
+
+
+/*
+ * Final score pill.
+ */
+
+.winner-banner > small {
+  display: block;
+
+  width:
+    fit-content;
+
+  margin:
+    16px auto 0;
+
+  padding:
+    7px 16px;
+
+  border:
+    1px solid
+    rgba(
+      246,
+      230,
+      168,
+      0.34
+    );
+
+  border-radius:
+    999px;
+
+  background:
+    rgba(
+      30,
+      15,
+      34,
+      0.55
+    );
+
+  color:
+    var(
+      --bb-gold,
+      #f6e6a8
+    );
+
+  font-size:
+    clamp(
+      1.25rem,
+      3vw,
+      1.65rem
+    );
+
+  font-weight:
+    900;
+
+  line-height:
+    1.1;
+}
+
+
+/*
+ * Slightly cleaner overall results
+ * spacing.
+ */
+
+.final-heading h2 {
+  margin-bottom:
+    28px;
+}
+
+.final-score-list {
+  margin-top:
+    4px;
+}
+
+
+/*
+ * Prevent long names from breaking
+ * the score rows.
+ */
+
+.final-player-name {
+  min-width: 0;
+
+  overflow-wrap:
+    anywhere;
+}
+
+
+/* --------------------------------------------------
+   MOBILE
+-------------------------------------------------- */
+
+@media (
+  max-width:
+  650px
+) {
+  .game.round-break-page > h1 {
+    font-size:
+      clamp(
+        2.15rem,
+        11vw,
+        3.25rem
+      );
+  }
+
+
+  .winner-banner {
+    padding:
+      24px 16px 26px;
+  }
+
+
+  .winner-banner > strong {
+    font-size:
+      clamp(
+        2rem,
+        11vw,
+        3rem
+      );
+  }
+}
+
+
+/* ===== BUZZBOARD END SCREEN POLISH END ===== */
