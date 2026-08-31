@@ -8358,8 +8358,8 @@ button:last-child {
 
   max-height:
     min(
-      42dvh,
-      380px
+      47dvh,
+      420px
     );
 
   margin:
@@ -8383,8 +8383,8 @@ button:last-child {
 
   max-height:
     min(
-      40dvh,
-      360px
+      45dvh,
+      400px
     );
 
   object-fit:
@@ -8748,8 +8748,8 @@ button:last-child {
   .clue-image-display img {
     max-height:
       min(
-        31dvh,
-        260px
+        35dvh,
+        290px
       );
   }
 
@@ -8827,8 +8827,8 @@ button:last-child {
   .clue-image-display img {
     max-height:
       min(
-        26dvh,
-        205px
+        29dvh,
+        225px
       );
   }
 
