@@ -5682,7 +5682,7 @@ function App() {
               !canReopenBuzzers
             }
           >
-            🔓 Reopen Buzzers
+            🔓 Buzzers
           </button>
 
           <button
@@ -5694,7 +5694,7 @@ function App() {
               !canSkipClue
             }
           >
-            ⏭ Skip / End Clue
+            ⏭ End Clue
           </button>
 
           <button
@@ -5720,7 +5720,7 @@ function App() {
                 : "Nothing to undo"
             }
           >
-            ↶ Undo Last Action
+            ↶ Undo
           </button>
         </div>
 
@@ -7450,12 +7450,8 @@ function App() {
 
         {hostToolsPanel}
 
-        {isHost ? (
-          <p>
-            👑 Host controls enabled
-          </p>
-        ) : (
-          <p>
+        {!isHost && (
+          <p className="board-waiting-message">
             Waiting for the host
             to choose a clue...
           </p>

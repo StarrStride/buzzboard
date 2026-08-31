@@ -8882,3 +8882,307 @@ button:last-child {
 
 
 /* ===== BUZZBOARD COMPACT QUESTIONS V2 END ===== */
+
+/* ===== BUZZBOARD CLEAN HOST DOCK START ===== */
+
+
+/*
+ * ------------------------------------------------
+ * HOST DOCK
+ * ------------------------------------------------
+ */
+
+.game .host-tools-panel {
+  position:
+    relative;
+}
+
+
+/*
+ * Gameplay-only dock treatment.
+ * Leaves the larger original styling available
+ * anywhere the compact gameplay rules do not apply.
+ */
+
+.game:has(.board)
+.host-tools-panel,
+.game:has(.clue-screen)
+.host-tools-panel,
+.game:has(.daily-double-screen)
+.host-tools-panel {
+  border:
+    1px solid
+    rgba(
+      220,
+      137,
+      201,
+      0.28
+    );
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(
+        53,
+        22,
+        64,
+        0.92
+      ),
+      rgba(
+        67,
+        28,
+        72,
+        0.88
+      )
+    );
+
+  box-shadow:
+    0 6px 18px
+    rgba(
+      5,
+      1,
+      9,
+      0.16
+    );
+}
+
+
+/*
+ * Inputs look like compact toolbar controls
+ * instead of full-size form fields.
+ */
+
+.game:has(.board)
+.host-score-tools select,
+.game:has(.board)
+.host-score-tools input,
+.game:has(.clue-screen)
+.host-score-tools select,
+.game:has(.clue-screen)
+.host-score-tools input,
+.game:has(.daily-double-screen)
+.host-score-tools select,
+.game:has(.daily-double-screen)
+.host-score-tools input {
+  border:
+    1px solid
+    rgba(
+      203,
+      128,
+      190,
+      0.28
+    );
+
+  background:
+    rgba(
+      18,
+      7,
+      25,
+      0.70
+    );
+
+  box-shadow:
+    none;
+}
+
+
+/*
+ * Add / subtract keep their semantic colors,
+ * but lose some visual weight.
+ */
+
+.game:has(.board)
+.host-score-buttons button,
+.game:has(.clue-screen)
+.host-score-buttons button,
+.game:has(.daily-double-screen)
+.host-score-buttons button {
+  border-radius:
+    9px;
+
+  font-weight:
+    800;
+}
+
+
+/*
+ * Utility buttons become one consistent family.
+ */
+
+.game:has(.board)
+.host-utility-buttons button,
+.game:has(.clue-screen)
+.host-utility-buttons button,
+.game:has(.daily-double-screen)
+.host-utility-buttons button {
+  border:
+    1px solid
+    rgba(
+      222,
+      148,
+      204,
+      0.24
+    );
+
+  border-radius:
+    9px;
+
+  background:
+    rgba(
+      116,
+      54,
+      110,
+      0.74
+    );
+
+  color:
+    #fff2fa;
+
+  font-weight:
+    800;
+
+  transition:
+    filter
+    120ms ease,
+    transform
+    120ms ease;
+}
+
+
+.game:has(.board)
+.host-utility-buttons button:hover:not(:disabled),
+.game:has(.clue-screen)
+.host-utility-buttons button:hover:not(:disabled),
+.game:has(.daily-double-screen)
+.host-utility-buttons button:hover:not(:disabled) {
+  filter:
+    brightness(
+      1.12
+    );
+
+  transform:
+    translateY(
+      -1px
+    );
+}
+
+
+/*
+ * Undo remains gold-ish so it is easy to spot,
+ * but no longer looks like a giant separate CTA.
+ */
+
+.game:has(.board)
+.host-utility-buttons
+.host-undo-button,
+.game:has(.clue-screen)
+.host-utility-buttons
+.host-undo-button,
+.game:has(.daily-double-screen)
+.host-utility-buttons
+.host-undo-button {
+  border-color:
+    rgba(
+      221,
+      186,
+      106,
+      0.34
+    );
+
+  background:
+    rgba(
+      112,
+      83,
+      39,
+      0.78
+    );
+
+  color:
+    #fff2ca;
+}
+
+
+/*
+ * The undo-description line is the only direct
+ * paragraph inside the host dock in gameplay.
+ *
+ * Turn it into a tiny status footer instead
+ * of another full row of UI.
+ */
+
+.game:has(.board)
+.host-tools-panel > p,
+.game:has(.clue-screen)
+.host-tools-panel > p,
+.game:has(.daily-double-screen)
+.host-tools-panel > p {
+  grid-column:
+    1 / -1;
+
+  margin:
+    1px 4px -1px;
+
+  padding:
+    0;
+
+  color:
+    rgba(
+      244,
+      210,
+      234,
+      0.68
+    );
+
+  font-size:
+    0.66rem;
+
+  line-height:
+    1.15;
+
+  text-align:
+    right;
+}
+
+
+/*
+ * Waiting message for non-hosts remains subtle.
+ */
+
+.board-waiting-message {
+  margin:
+    3px auto;
+
+  color:
+    rgba(
+      244,
+      215,
+      235,
+      0.70
+    );
+
+  font-size:
+    0.75rem;
+}
+
+
+/*
+ * Short viewport: strip even more dead space.
+ */
+
+@media (
+  max-height:
+  760px
+) {
+  .game:has(.board)
+  .host-tools-panel > p,
+  .game:has(.clue-screen)
+  .host-tools-panel > p,
+  .game:has(.daily-double-screen)
+  .host-tools-panel > p {
+    display:
+      none;
+  }
+}
+
+
+/* ===== BUZZBOARD CLEAN HOST DOCK END ===== */
