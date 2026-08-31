@@ -8379,7 +8379,11 @@ button:last-child {
     100%;
 
   height:
-    auto;
+    clamp(
+      220px,
+      38dvh,
+      360px
+    );
 
   max-height:
     min(
@@ -8660,6 +8664,19 @@ button:last-child {
 
 .game:has(.daily-double-screen)
 .clue-image-display img {
+  width:
+    auto;
+
+  max-width:
+    100%;
+
+  height:
+    clamp(
+      180px,
+      27dvh,
+      240px
+    );
+
   max-height:
     min(
       36dvh,
