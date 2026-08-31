@@ -9382,3 +9382,404 @@ button:last-child {
 
 
 /* ===== BUZZBOARD PLAYER AVATARS END ===== */
+
+/* ===== BUZZBOARD HOST SPECTATOR UI START ===== */
+
+
+.host-participation-card {
+  width:
+    min(
+      720px,
+      96%
+    );
+
+  margin:
+    14px auto 0;
+
+  padding:
+    14px 16px;
+
+  border:
+    1px solid
+    rgba(
+      224,
+      144,
+      203,
+      0.32
+    );
+
+  border-radius:
+    14px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(
+        77,
+        35,
+        87,
+        0.82
+      ),
+      rgba(
+        42,
+        18,
+        55,
+        0.92
+      )
+    );
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  gap:
+    18px;
+
+  text-align:
+    left;
+}
+
+
+.host-participation-copy {
+  min-width:
+    0;
+
+  display:
+    grid;
+
+  gap:
+    3px;
+}
+
+
+.host-participation-copy > span {
+  color:
+    #ffbde8;
+
+  font-size:
+    0.7rem;
+
+  font-weight:
+    900;
+
+  letter-spacing:
+    0.12em;
+}
+
+
+.host-participation-copy > strong {
+  color:
+    #fff4fb;
+
+  font-size:
+    1rem;
+}
+
+
+.host-participation-copy > small {
+  color:
+    rgba(
+      247,
+      220,
+      238,
+      0.72
+    );
+
+  line-height:
+    1.35;
+}
+
+
+.host-participation-toggle {
+  flex:
+    0 0 auto;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    9px;
+
+  cursor:
+    pointer;
+
+  user-select:
+    none;
+}
+
+
+.host-participation-toggle input {
+  position:
+    absolute;
+
+  width:
+    1px;
+
+  height:
+    1px;
+
+  opacity:
+    0;
+
+  pointer-events:
+    none;
+}
+
+
+.host-participation-switch {
+  width:
+    48px;
+
+  height:
+    26px;
+
+  padding:
+    3px;
+
+  border:
+    1px solid
+    rgba(
+      255,
+      190,
+      226,
+      0.34
+    );
+
+  border-radius:
+    999px;
+
+  background:
+    #4b294f;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  transition:
+    background
+    150ms ease,
+    border-color
+    150ms ease;
+}
+
+
+.host-participation-switch > span {
+  width:
+    18px;
+
+  height:
+    18px;
+
+  border-radius:
+    50%;
+
+  background:
+    #efe4ef;
+
+  transform:
+    translateX(
+      0
+    );
+
+  transition:
+    transform
+    150ms ease,
+    background
+    150ms ease;
+}
+
+
+.host-participation-toggle
+input:checked +
+.host-participation-switch {
+  border-color:
+    rgba(
+      126,
+      230,
+      169,
+      0.58
+    );
+
+  background:
+    #276343;
+}
+
+
+.host-participation-toggle
+input:checked +
+.host-participation-switch >
+span {
+  background:
+    #dff8e8;
+
+  transform:
+    translateX(
+      20px
+    );
+}
+
+
+.host-participation-toggle >
+strong {
+  min-width:
+    82px;
+
+  color:
+    #f6d9ed;
+
+  font-size:
+    0.72rem;
+
+  letter-spacing:
+    0.06em;
+
+  text-align:
+    center;
+}
+
+
+.spectator-badge {
+  padding:
+    3px 7px;
+
+  border:
+    1px solid
+    rgba(
+      203,
+      153,
+      225,
+      0.34
+    );
+
+  border-radius:
+    999px;
+
+  background:
+    rgba(
+      67,
+      40,
+      82,
+      0.88
+    );
+
+  color:
+    #ddc6ea;
+
+  font-size:
+    0.65rem;
+
+  font-weight:
+    900;
+
+  letter-spacing:
+    0.07em;
+}
+
+
+.spectator-game-notice {
+  width:
+    min(
+      620px,
+      96%
+    );
+
+  margin:
+    10px auto;
+
+  padding:
+    10px 14px;
+
+  border:
+    1px solid
+    rgba(
+      195,
+      139,
+      211,
+      0.30
+    );
+
+  border-radius:
+    11px;
+
+  background:
+    rgba(
+      57,
+      35,
+      70,
+      0.72
+    );
+
+  color:
+    #e9d9ef;
+
+  font-size:
+    0.85rem;
+
+  text-align:
+    center;
+}
+
+
+.spectator-final-notice {
+  display:
+    grid;
+
+  gap:
+    4px;
+}
+
+
+.spectator-final-notice strong {
+  color:
+    #ffe0f3;
+
+  font-size:
+    1rem;
+}
+
+
+.spectator-final-notice span {
+  color:
+    rgba(
+      238,
+      217,
+      239,
+      0.76
+    );
+}
+
+
+@media (
+  max-width:
+  700px
+) {
+  .host-participation-card {
+    flex-direction:
+      column;
+
+    align-items:
+      stretch;
+
+    text-align:
+      center;
+  }
+
+
+  .host-participation-toggle {
+    justify-content:
+      center;
+  }
+}
+
+
+/* ===== BUZZBOARD HOST SPECTATOR UI END ===== */

@@ -24,6 +24,7 @@ type Player = {
   name: string;
   username: string;
   avatar: string | null;
+  isContestant: boolean;
   score: number;
 };
 
@@ -2438,8 +2439,18 @@ function App() {
 
   useEffect(
     () => {
+      const contestantPlayers =
+        gameState.players.filter(
+          (
+            player
+          ) =>
+            player.isContestant !==
+              false
+        );
+
+
       if (
-        gameState.players.length ===
+        contestantPlayers.length ===
         0
       ) {
         setHostSelectedPlayerId(
@@ -2449,8 +2460,9 @@ function App() {
         return;
       }
 
+
       const selectedStillExists =
-        gameState.players.some(
+        contestantPlayers.some(
           (
             player
           ) =>
@@ -2458,11 +2470,12 @@ function App() {
             hostSelectedPlayerId
         );
 
+
       if (
         !selectedStillExists
       ) {
         setHostSelectedPlayerId(
-          gameState.players[0].id
+          contestantPlayers[0].id
         );
       }
     },
@@ -2472,7 +2485,6 @@ function App() {
       hostSelectedPlayerId,
     ]
   );
-
 
   /*
    * --------------------------------
@@ -4896,6 +4908,18 @@ function App() {
   }
 
 
+  function setHostParticipation(
+    participating:
+      boolean
+  ) {
+    socketRef.current
+      ?.emit(
+        "set_host_participation",
+
+        participating
+      );
+  }
+
   function selectClue(
     categoryId:
       string,
@@ -5196,6 +5220,22 @@ function App() {
       );
 
 
+  const contestants =
+    gameState.players.filter(
+      (
+        player
+      ) =>
+        player.isContestant !==
+          false
+    );
+
+
+  const isCurrentUserContestant =
+    currentPlayer !==
+      undefined &&
+    currentPlayer.isContestant !==
+      false;
+
   const maxFinalWager =
     Math.max(
       0,
@@ -5239,7 +5279,7 @@ function App() {
 
 
   const eligiblePlayers =
-    gameState.players
+    contestants
       .filter(
         (
           player
@@ -5693,7 +5733,7 @@ function App() {
                 )
               }
             >
-              {gameState.players.map(
+              {contestants.map(
                 (
                   player
                 ) => (
@@ -5859,7 +5899,7 @@ function App() {
 
   const scoreboard = (
     <div className="scoreboard">
-      {gameState.players.map(
+      {contestants.map(
         (
           player
         ) => (
@@ -5965,7 +6005,7 @@ function App() {
               </p>
 
               <div className="daily-double-player-grid">
-                {gameState.players.map(
+                {contestants.map(
                   (
                     player
                   ) => (
@@ -6431,7 +6471,18 @@ function App() {
             .
           </p>
 
-          {finalRound
+          {!isCurrentUserContestant ? (
+            <div className="spectator-game-notice spectator-final-notice">
+              <strong>
+                👑 Hosting Final Round
+              </strong>
+
+              <span>
+                You are spectating, so you
+                do not place a wager.
+              </span>
+            </div>
+          ) : finalRound
             .ownWagerLocked ? (
             <div className="final-locked-card">
               <span>
@@ -6602,7 +6653,18 @@ function App() {
               "(No Final clue entered)"}
           </h2>
 
-          {finalRound
+          {!isCurrentUserContestant ? (
+            <div className="spectator-game-notice spectator-final-notice">
+              <strong>
+                👑 Hosting Final Round
+              </strong>
+
+              <span>
+                You are spectating, so you
+                do not submit a Final answer.
+              </span>
+            </div>
+          ) : finalRound
             .ownAnswerLocked ? (
             <div className="final-locked-card">
               <span>
@@ -6907,7 +6969,7 @@ function App() {
   ) {
     const rankedPlayers =
       [
-        ...gameState.players,
+        ...contestants,
       ].sort(
         (
           a,
@@ -7411,7 +7473,12 @@ function App() {
 
               {buzzerTimer}
 
-              {lockedOut ? (
+              {!isCurrentUserContestant ? (
+                <p className="spectator-game-notice">
+                  👑 Hosting only · You are
+                  not competing in this clue.
+                </p>
+              ) : lockedOut ? (
                 <button
                   type="button"
                   className="buzz-button"
@@ -7722,12 +7789,73 @@ function App() {
                           👑 HOST
                         </strong>
                       )}
+
+                      {player.id ===
+                        gameState
+                          .hostId &&
+                        player.isContestant ===
+                          false && (
+                          <span className="spectator-badge">
+                            SPECTATING
+                          </span>
+                        )}
                     </li>
                   )
                 )}
             </ul>
           )}
         </div>
+
+        {isHost &&
+          currentPlayer && (
+            <div className="host-participation-card">
+              <div className="host-participation-copy">
+                <span>
+                  👑 HOST PARTICIPATION
+                </span>
+
+                <strong>
+                  {isCurrentUserContestant
+                    ? "Playing as a contestant"
+                    : "Hosting only"}
+                </strong>
+
+                <small>
+                  {isCurrentUserContestant
+                    ? "Your score counts, and you can buzz, wager, and play Final Round."
+                    : "You control the game but are excluded from scoring, buzzing, Daily Doubles, and Final Round."}
+                </small>
+              </div>
+
+              <label className="host-participation-toggle">
+                <input
+                  type="checkbox"
+                  checked={
+                    isCurrentUserContestant
+                  }
+                  onChange={(
+                    event
+                  ) =>
+                    setHostParticipation(
+                      event
+                        .target
+                        .checked
+                    )
+                  }
+                />
+
+                <span className="host-participation-switch">
+                  <span />
+                </span>
+
+                <strong>
+                  {isCurrentUserContestant
+                    ? "PLAYING"
+                    : "SPECTATING"}
+                </strong>
+              </label>
+            </div>
+          )}
 
         {!isHost &&
           gameState.board && (
@@ -8099,7 +8227,9 @@ function App() {
                 }
                 disabled={
                   !gameState.board ||
-                  editorDirty
+                  editorDirty ||
+                  contestants.length ===
+                    0
                 }
               >
                 Start Game

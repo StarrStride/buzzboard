@@ -638,6 +638,74 @@ function restoreUndoSnapshot(
 }
 
 
+/* ===== BUZZBOARD HOST SPECTATOR FOUNDATION START ===== */
+
+
+/*
+ * --------------------------------
+ * CONTESTANT HELPERS
+ * --------------------------------
+ *
+ * A connected player may still be
+ * the host without competing.
+ *
+ * Missing/legacy values count as
+ * true so existing behavior remains
+ * unchanged by default.
+ */
+
+function playerIsContestant(
+  game,
+  playerId
+) {
+  const player =
+    game.players.get(
+      playerId
+    );
+
+
+  return (
+    Boolean(
+      player
+    ) &&
+    player.isContestant !==
+      false
+  );
+}
+
+
+function getContestants(
+  game
+) {
+  return Array.from(
+    game.players.values()
+  ).filter(
+    (player) =>
+      player.isContestant !==
+      false
+  );
+}
+
+
+
+
+function getEligibleBuzzerContestants(
+  game
+) {
+  return getContestants(
+    game
+  ).filter(
+    (player) =>
+      !game.buzzer
+        .lockedOut
+        .has(
+          player.id
+        )
+  );
+}
+
+/* ===== BUZZBOARD HOST SPECTATOR FOUNDATION HELPERS END ===== */
+
 function resetBuzzer(
   game
 ) {
@@ -1499,23 +1567,29 @@ function getOrCreateFinalSubmission(
 function allPlayersHaveLockedWagers(
   game
 ) {
+  const contestants =
+    getContestants(
+      game
+    );
+
+
   if (
-    game.players.size ===
+    contestants.length ===
     0
   ) {
     return false;
   }
 
-  return Array.from(
-    game.players.keys()
-  ).every(
-    (playerId) => {
+
+  return contestants.every(
+    (player) => {
       const submission =
         game.finalRound
           .submissions
           .get(
-            playerId
+            player.id
           );
+
 
       return (
         submission
@@ -1526,27 +1600,32 @@ function allPlayersHaveLockedWagers(
   );
 }
 
-
 function allPlayersHaveLockedAnswers(
   game
 ) {
+  const contestants =
+    getContestants(
+      game
+    );
+
+
   if (
-    game.players.size ===
+    contestants.length ===
     0
   ) {
     return false;
   }
 
-  return Array.from(
-    game.players.keys()
-  ).every(
-    (playerId) => {
+
+  return contestants.every(
+    (player) => {
       const submission =
         game.finalRound
           .submissions
           .get(
-            playerId
+            player.id
           );
+
 
       return (
         submission
@@ -1557,27 +1636,32 @@ function allPlayersHaveLockedAnswers(
   );
 }
 
-
 function allFinalAnswersJudged(
   game
 ) {
+  const contestants =
+    getContestants(
+      game
+    );
+
+
   if (
-    game.players.size ===
+    contestants.length ===
     0
   ) {
     return false;
   }
 
-  return Array.from(
-    game.players.keys()
-  ).every(
-    (playerId) => {
+
+  return contestants.every(
+    (player) => {
       const submission =
         game.finalRound
           .submissions
           .get(
-            playerId
+            player.id
           );
+
 
       return (
         submission?.judged ===
@@ -1588,7 +1672,6 @@ function allFinalAnswersJudged(
     }
   );
 }
-
 
 function serializeFinalRoundForSocket(
   game,
@@ -1615,8 +1698,8 @@ function serializeFinalRoundForSocket(
       );
 
   const statuses =
-    Array.from(
-      game.players.values()
+    getContestants(
+      game
     ).map(
       (player) => {
         const submission =
@@ -1770,8 +1853,15 @@ function serializeGameForSocket(
     players:
       Array.from(
         game.players.values()
-      ),
+      ).map(
+        (player) => ({
+          ...player,
 
+          isContestant:
+            player.isContestant !==
+            false,
+        })
+      ),
     board:
       makePublicBoard(
         game
@@ -2113,15 +2203,8 @@ function applyNormalIncorrect(
     null;
 
   const eligiblePlayers =
-    Array.from(
-      game.players.values()
-    ).filter(
-      (player) =>
-        !game.buzzer
-          .lockedOut
-          .has(
-            player.id
-          )
+    getEligibleBuzzerContestants(
+      game
     );
 
   console.log(
@@ -2371,12 +2454,14 @@ function startFinalRound(
   );
 
   for (
-    const playerId of
-    game.players.keys()
+    const player of
+    getContestants(
+      game
+    )
   ) {
     getOrCreateFinalSubmission(
       game,
-      playerId
+      player.id
     );
   }
 
@@ -2556,11 +2641,17 @@ io.on(
         }
 
         if (
-          game.phase.startsWith(
-            "final_"
-          ) ||
-          game.phase ===
-            "finished"
+          (
+            game.phase.startsWith(
+              "final_"
+            ) ||
+            game.phase ===
+              "finished"
+          ) &&
+          playerIsContestant(
+            game,
+            player.id
+          )
         ) {
           getOrCreateFinalSubmission(
             game,
@@ -3119,6 +3210,95 @@ io.on(
       }
     );
 
+    /*
+     * -----------------------------
+     * HOST PARTICIPATION
+     * -----------------------------
+     *
+     * Hosts remain connected and retain
+     * control of the game even when they
+     * choose not to compete.
+     *
+     * This may only be changed in lobby.
+     */
+
+    socket.on(
+      "set_host_participation",
+
+      (
+        participating
+      ) => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          ) ||
+          game.phase !==
+            "lobby"
+        ) {
+          return;
+        }
+
+
+        const hostPlayer =
+          game.players.get(
+            socket.data
+              .playerId
+          );
+
+
+        if (!hostPlayer) {
+          return;
+        }
+
+
+        hostPlayer.isContestant =
+          participating !==
+          false;
+
+
+        /*
+         * Participation can only change
+         * before play begins, so keeping
+         * the host at zero here prevents
+         * stale test-game scores.
+         */
+
+        hostPlayer.score =
+          0;
+
+
+        game.finalRound
+          .submissions
+          .delete(
+            hostPlayer.id
+          );
+
+
+        console.log(
+          `${hostPlayer.name} host participation: ${
+            hostPlayer.isContestant
+              ? "contestant"
+              : "hosting only"
+          }`
+        );
+
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+
     socket.on(
       "list_saved_games",
 
@@ -3512,7 +3692,11 @@ io.on(
             socket.data
               .playerId
           ) ||
-          !game.gameConfig
+          !game.gameConfig ||
+          getContestants(
+            game
+          ).length ===
+            0
         ) {
           return;
         }
@@ -3734,6 +3918,10 @@ io.on(
             true ||
           !game.players.has(
             playerId
+          ) ||
+          !playerIsContestant(
+            game,
+            playerId
           )
         ) {
           return;
@@ -3787,6 +3975,10 @@ io.on(
 
         if (
           !game ||
+          !playerIsContestant(
+            game,
+            playerId
+          ) ||
           game.phase !==
             "daily_double_wager" ||
           game.dailyDouble
@@ -4028,7 +4220,11 @@ io.on(
               .playerId
           ) ||
           game.phase !==
-            "clue"
+            "clue" ||
+          getEligibleBuzzerContestants(
+            game
+          ).length ===
+            0
         ) {
           return;
         }
@@ -4068,6 +4264,10 @@ io.on(
 
         if (
           !game ||
+          !playerIsContestant(
+            game,
+            playerId
+          ) ||
           game.phase !==
             "clue" ||
           !game.buzzer.open ||
@@ -4312,6 +4512,10 @@ io.on(
 
         if (
           !player ||
+          !playerIsContestant(
+            game,
+            playerId
+          ) ||
           !Number.isFinite(
             numericAmount
           )
@@ -4383,16 +4587,9 @@ io.on(
         }
 
         const eligiblePlayers =
-          Array.from(
-            game.players.values()
-          ).filter(
-            (player) =>
-              !game.buzzer
-                .lockedOut
-                .has(
-                  player.id
-                )
-          );
+    getEligibleBuzzerContestants(
+      game
+    );
 
         if (
           eligiblePlayers.length ===
@@ -4550,6 +4747,10 @@ io.on(
         if (
           !game ||
           !player ||
+          !playerIsContestant(
+            game,
+            player.id
+          ) ||
           game.phase !==
             "final_wager"
         ) {
@@ -4680,6 +4881,10 @@ io.on(
         if (
           !game ||
           !player ||
+          !playerIsContestant(
+            game,
+            player.id
+          ) ||
           game.phase !==
             "final_clue"
         ) {
@@ -4802,6 +5007,10 @@ io.on(
 
         if (
           !player ||
+          !playerIsContestant(
+            game,
+            playerId
+          ) ||
           !submission ||
           submission.judged !==
             null
@@ -4988,16 +5197,9 @@ io.on(
             null;
 
           const eligiblePlayers =
-            Array.from(
-              game.players.values()
-            ).filter(
-              (player) =>
-                !game.buzzer
-                  .lockedOut
-                  .has(
-                    player.id
-                  )
-            );
+    getEligibleBuzzerContestants(
+      game
+    );
 
           if (
             eligiblePlayers.length >
