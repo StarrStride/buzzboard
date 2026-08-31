@@ -7869,3 +7869,999 @@ button:last-child {
 
 
 /* ===== BUZZBOARD COMPACT GAMEPLAY END ===== */
+
+/* ===== BUZZBOARD COMPACT QUESTIONS V2 START ===== */
+
+
+/*
+ * =================================================
+ * ACTIVE QUESTION PAGE
+ *
+ * IMPORTANT:
+ * - no fixed viewport height
+ * - no overflow:hidden
+ * - no flex squeezing of clue contents
+ * =================================================
+ */
+
+.game:has(.clue-screen),
+.game:has(.daily-double-screen) {
+  box-sizing:
+    border-box;
+
+  min-height:
+    100dvh;
+
+  padding:
+    calc(
+      8px +
+      env(
+        safe-area-inset-top,
+        0px
+      )
+    )
+    clamp(
+      12px,
+      2vw,
+      26px
+    )
+    calc(
+      54px +
+      env(
+        safe-area-inset-bottom,
+        0px
+      )
+    );
+}
+
+
+/*
+ * =================================================
+ * BRANDING / TOP META
+ * =================================================
+ */
+
+.game:has(.clue-screen) > img,
+.game:has(.daily-double-screen) > img {
+  display:
+    block;
+
+  width:
+    auto;
+
+  max-width:
+    min(
+      320px,
+      32vw
+    );
+
+  max-height:
+    105px;
+
+  margin:
+    0 auto 5px;
+
+  object-fit:
+    contain;
+}
+
+
+.game:has(.clue-screen) > h1,
+.game:has(.daily-double-screen) > h1 {
+  margin:
+    2px 0;
+
+  font-size:
+    clamp(
+      1.3rem,
+      2.8vh,
+      1.85rem
+    );
+
+  line-height:
+    1.05;
+}
+
+
+.game:has(.clue-screen) > p,
+.game:has(.daily-double-screen) > p {
+  margin:
+    2px 0;
+
+  font-size:
+    0.82rem;
+
+  line-height:
+    1.1;
+}
+
+
+.game:has(.clue-screen) > button,
+.game:has(.daily-double-screen) > button {
+  min-height:
+    32px;
+
+  margin:
+    3px auto;
+
+  padding:
+    5px 12px;
+
+  font-size:
+    0.78rem;
+}
+
+
+/*
+ * =================================================
+ * SCOREBOARD
+ * =================================================
+ */
+
+.game:has(.clue-screen)
+.scoreboard,
+.game:has(.daily-double-screen)
+.scoreboard {
+  width:
+    min(
+      1050px,
+      100%
+    );
+
+  margin:
+    5px auto;
+
+  gap:
+    7px;
+
+  flex-wrap:
+    nowrap;
+}
+
+
+.game:has(.clue-screen)
+.score-card,
+.game:has(.daily-double-screen)
+.score-card {
+  min-width:
+    0;
+
+  max-width:
+    200px;
+
+  flex:
+    1 1 0;
+
+  padding:
+    5px 10px;
+
+  border-radius:
+    10px;
+
+  flex-direction:
+    row;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    8px;
+}
+
+
+.game:has(.clue-screen)
+.score-name,
+.game:has(.daily-double-screen)
+.score-name {
+  min-width:
+    0;
+
+  overflow:
+    hidden;
+
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
+
+  font-size:
+    0.75rem;
+}
+
+
+.game:has(.clue-screen)
+.score-card strong,
+.game:has(.daily-double-screen)
+.score-card strong {
+  flex-shrink:
+    0;
+
+  font-size:
+    1.15rem;
+
+  line-height:
+    1;
+}
+
+
+/*
+ * =================================================
+ * COMPACT HOST DOCK
+ *
+ * Same general treatment that worked beautifully
+ * on the board, but we do NOT constrain the clue.
+ * =================================================
+ */
+
+.game:has(.clue-screen)
+.host-tools-panel,
+.game:has(.daily-double-screen)
+.host-tools-panel {
+  width:
+    min(
+      1250px,
+      100%
+    );
+
+  margin:
+    5px auto;
+
+  padding:
+    7px 9px;
+
+  border-radius:
+    12px;
+
+  display:
+    grid;
+
+  grid-template-columns:
+    minmax(
+      250px,
+      1.2fr
+    )
+    minmax(
+      180px,
+      0.72fr
+    )
+    minmax(
+      330px,
+      1.35fr
+    );
+
+  align-items:
+    end;
+
+  gap:
+    7px;
+}
+
+
+.game:has(.clue-screen)
+.host-tools-heading,
+.game:has(.daily-double-screen)
+.host-tools-heading {
+  display:
+    none;
+}
+
+
+.game:has(.clue-screen)
+.host-score-tools,
+.game:has(.daily-double-screen)
+.host-score-tools {
+  grid-template-columns:
+    minmax(
+      0,
+      1fr
+    )
+    minmax(
+      82px,
+      105px
+    );
+
+  gap:
+    6px;
+}
+
+
+.game:has(.clue-screen)
+.host-score-tools label,
+.game:has(.daily-double-screen)
+.host-score-tools label {
+  gap:
+    0;
+}
+
+
+.game:has(.clue-screen)
+.host-score-tools label > span,
+.game:has(.daily-double-screen)
+.host-score-tools label > span {
+  display:
+    none;
+}
+
+
+.game:has(.clue-screen)
+.host-score-tools select,
+.game:has(.clue-screen)
+.host-score-tools input,
+.game:has(.daily-double-screen)
+.host-score-tools select,
+.game:has(.daily-double-screen)
+.host-score-tools input {
+  min-height:
+    34px;
+
+  height:
+    34px;
+
+  padding:
+    4px 8px;
+
+  font-size:
+    0.78rem;
+}
+
+
+.game:has(.clue-screen)
+.host-score-buttons,
+.game:has(.daily-double-screen)
+.host-score-buttons {
+  margin:
+    0;
+
+  gap:
+    6px;
+}
+
+
+.game:has(.clue-screen)
+.host-score-buttons button,
+.game:has(.daily-double-screen)
+.host-score-buttons button {
+  min-height:
+    34px;
+
+  height:
+    34px;
+
+  padding:
+    4px 7px;
+
+  font-size:
+    0.74rem;
+}
+
+
+.game:has(.clue-screen)
+.host-utility-buttons,
+.game:has(.daily-double-screen)
+.host-utility-buttons {
+  margin:
+    0;
+
+  padding:
+    0;
+
+  border-top:
+    0;
+
+  gap:
+    6px;
+}
+
+
+.game:has(.clue-screen)
+.host-utility-buttons button,
+.game:has(.daily-double-screen)
+.host-utility-buttons button {
+  min-width:
+    0;
+
+  min-height:
+    34px;
+
+  height:
+    34px;
+
+  padding:
+    4px 6px;
+
+  font-size:
+    0.69rem;
+
+  line-height:
+    1;
+
+  white-space:
+    nowrap;
+}
+
+
+/*
+ * =================================================
+ * NORMAL CLUE CARD
+ * =================================================
+ */
+
+.game:has(.clue-screen)
+.clue-screen {
+  box-sizing:
+    border-box;
+
+  width:
+    min(
+      950px,
+      96%
+    );
+
+  max-width:
+    950px;
+
+  margin:
+    7px auto 0;
+
+  padding:
+    clamp(
+      12px,
+      1.8vh,
+      20px
+    );
+}
+
+
+.game:has(.clue-screen)
+.clue-screen > h2 {
+  max-width:
+    840px;
+
+  margin:
+    0 auto 12px;
+
+  font-size:
+    clamp(
+      1.35rem,
+      3.5vh,
+      2.15rem
+    );
+
+  line-height:
+    1.15;
+
+  overflow-wrap:
+    anywhere;
+}
+
+
+/*
+ * =================================================
+ * IMAGE CLUES
+ *
+ * Notice: only MAX height.
+ * We never assign a forced height.
+ * =================================================
+ */
+
+.game:has(.clue-screen)
+.clue-image-display {
+  width:
+    min(
+      760px,
+      96%
+    );
+
+  max-height:
+    min(
+      42dvh,
+      380px
+    );
+
+  margin:
+    8px auto 12px;
+
+  padding:
+    7px;
+}
+
+
+.game:has(.clue-screen)
+.clue-image-display img {
+  width:
+    auto;
+
+  max-width:
+    100%;
+
+  height:
+    auto;
+
+  max-height:
+    min(
+      40dvh,
+      360px
+    );
+
+  object-fit:
+    contain;
+}
+
+
+/*
+ * Image + audio clue needs slightly less media height.
+ */
+
+.game:has(.clue-screen)
+.clue-screen:has(.clue-audio-game-card)
+.clue-image-display img {
+  max-height:
+    min(
+      30dvh,
+      270px
+    );
+}
+
+
+/*
+ * =================================================
+ * AUDIO CLUE CARD
+ * =================================================
+ */
+
+.game:has(.clue-screen)
+.clue-audio-game-card {
+  width:
+    min(
+      600px,
+      95%
+    );
+
+  margin:
+    8px auto 12px;
+
+  padding:
+    12px 14px;
+
+  border-radius:
+    13px;
+}
+
+
+.game:has(.clue-screen)
+.clue-audio-game-status {
+  margin:
+    6px auto 0;
+
+  font-size:
+    0.87rem;
+}
+
+
+.game:has(.clue-screen)
+.clue-audio-host-controls {
+  gap:
+    7px;
+
+  margin-top:
+    9px;
+}
+
+
+.game:has(.clue-screen)
+.clue-audio-host-controls button {
+  min-height:
+    36px;
+
+  padding:
+    5px 8px;
+
+  font-size:
+    0.73rem;
+}
+
+
+/*
+ * =================================================
+ * ANSWER / JUDGING / TIMERS
+ * =================================================
+ */
+
+.game:has(.clue-screen)
+.host-answer {
+  width:
+    min(
+      680px,
+      96%
+    );
+
+  margin:
+    9px auto;
+
+  padding:
+    10px 15px;
+
+  border-radius:
+    11px;
+}
+
+
+.game:has(.clue-screen)
+.judge-controls {
+  gap:
+    8px;
+
+  margin-top:
+    8px;
+}
+
+
+.game:has(.clue-screen)
+.judge-controls button {
+  min-height:
+    38px;
+
+  padding:
+    6px 11px;
+}
+
+
+.game:has(.clue-screen)
+.secondary-button {
+  margin-top:
+    8px;
+}
+
+
+.game:has(.clue-screen)
+.timer-card,
+.game:has(.daily-double-screen)
+.timer-card {
+  width:
+    min(
+      210px,
+      90%
+    );
+
+  margin:
+    8px auto;
+
+  padding:
+    9px 12px;
+
+  border-radius:
+    11px;
+}
+
+
+.game:has(.clue-screen)
+.timer-card strong,
+.game:has(.daily-double-screen)
+.timer-card strong {
+  font-size:
+    clamp(
+      1.7rem,
+      4.4vh,
+      2.35rem
+    );
+}
+
+
+/*
+ * =================================================
+ * DAILY DOUBLE
+ *
+ * We deliberately do NOT assign height,
+ * display:flex, or overflow here.
+ * Select/wager/clue keep their natural structure.
+ * =================================================
+ */
+
+.game:has(.daily-double-screen)
+.daily-double-screen {
+  box-sizing:
+    border-box;
+
+  width:
+    min(
+      900px,
+      96%
+    );
+
+  margin:
+    7px auto;
+
+  padding:
+    clamp(
+      16px,
+      2.3vh,
+      26px
+    );
+}
+
+
+.game:has(.daily-double-screen)
+.daily-double-label {
+  margin-bottom:
+    5px;
+}
+
+
+.game:has(.daily-double-screen)
+.daily-double-screen > h2,
+.game:has(.daily-double-screen)
+.daily-double-question {
+  margin:
+    5px auto 10px;
+
+  font-size:
+    clamp(
+      1.4rem,
+      3.7vh,
+      2.2rem
+    );
+
+  line-height:
+    1.15;
+}
+
+
+.game:has(.daily-double-screen)
+.daily-double-screen > p {
+  margin:
+    6px auto;
+
+  line-height:
+    1.3;
+}
+
+
+.game:has(.daily-double-screen)
+.daily-double-player-grid {
+  margin-top:
+    10px;
+
+  gap:
+    8px;
+}
+
+
+.game:has(.daily-double-screen)
+.daily-double-wager-area {
+  margin:
+    12px auto;
+
+  gap:
+    10px;
+}
+
+
+/*
+ * Actual DD image media can shrink safely.
+ * Again: max-height only, never forced height.
+ */
+
+.game:has(.daily-double-screen)
+.clue-image-display {
+  max-height:
+    min(
+      38dvh,
+      340px
+    );
+
+  margin:
+    8px auto 12px;
+}
+
+
+.game:has(.daily-double-screen)
+.clue-image-display img {
+  max-height:
+    min(
+      36dvh,
+      320px
+    );
+
+  object-fit:
+    contain;
+}
+
+
+.game:has(.daily-double-screen)
+.clue-audio-game-card {
+  margin:
+    8px auto 12px;
+
+  padding:
+    12px 14px;
+}
+
+
+/*
+ * =================================================
+ * NARROW HOST WINDOWS
+ * =================================================
+ */
+
+@media (
+  max-width:
+  1050px
+) {
+  .game:has(.clue-screen)
+  .host-tools-panel,
+  .game:has(.daily-double-screen)
+  .host-tools-panel {
+    grid-template-columns:
+      minmax(
+        0,
+        1fr
+      )
+      minmax(
+        0,
+        1fr
+      );
+  }
+
+
+  .game:has(.clue-screen)
+  .host-utility-buttons,
+  .game:has(.daily-double-screen)
+  .host-utility-buttons {
+    grid-column:
+      1 / -1;
+  }
+}
+
+
+/*
+ * =================================================
+ * SHORT DISCORD VIEWPORT
+ *
+ * First remove decorative branding.
+ * Never crop the actual game content.
+ * =================================================
+ */
+
+@media (
+  max-height:
+  800px
+) {
+  .game:has(.clue-screen),
+  .game:has(.daily-double-screen) {
+    padding-top:
+      4px;
+  }
+
+
+  .game:has(.clue-screen) > img,
+  .game:has(.daily-double-screen) > img {
+    display:
+      none;
+  }
+
+
+  .game:has(.clue-screen)
+  .clue-image-display img {
+    max-height:
+      min(
+        31dvh,
+        260px
+      );
+  }
+
+
+  .game:has(.daily-double-screen)
+  .clue-image-display img {
+    max-height:
+      min(
+        29dvh,
+        240px
+      );
+  }
+
+
+  .game:has(.clue-screen)
+  .clue-screen {
+    margin-top:
+      4px;
+
+    padding:
+      10px 13px;
+  }
+
+
+  .game:has(.daily-double-screen)
+  .daily-double-screen {
+    margin-top:
+      4px;
+
+    padding:
+      13px 16px;
+  }
+}
+
+
+/*
+ * =================================================
+ * VERY SHORT VIEWPORT
+ * =================================================
+ */
+
+@media (
+  max-height:
+  680px
+) {
+  .game:has(.clue-screen)
+  .scoreboard,
+  .game:has(.daily-double-screen)
+  .scoreboard {
+    margin:
+      2px auto;
+  }
+
+
+  .game:has(.clue-screen)
+  .host-tools-panel,
+  .game:has(.daily-double-screen)
+  .host-tools-panel {
+    margin:
+      2px auto;
+  }
+
+
+  .game:has(.clue-screen)
+  .clue-screen > h2 {
+    font-size:
+      1.2rem;
+
+    margin-bottom:
+      7px;
+  }
+
+
+  .game:has(.clue-screen)
+  .clue-image-display img {
+    max-height:
+      min(
+        26dvh,
+        205px
+      );
+  }
+
+
+  .game:has(.daily-double-screen)
+  .clue-image-display img {
+    max-height:
+      min(
+        24dvh,
+        190px
+      );
+  }
+
+
+  .game:has(.clue-screen)
+  .host-answer {
+    margin:
+      5px auto;
+
+    padding:
+      7px 10px;
+  }
+
+
+  .game:has(.clue-screen)
+  .clue-audio-game-card {
+    margin:
+      5px auto 7px;
+
+    padding:
+      9px 11px;
+  }
+}
+
+
+/* ===== BUZZBOARD COMPACT QUESTIONS V2 END ===== */
