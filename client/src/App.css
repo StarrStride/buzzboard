@@ -7107,3 +7107,765 @@ button:last-child {
 
 
 /* ===== BUZZBOARD AUDIO CLUES END ===== */
+
+/* ===== BUZZBOARD COMPACT GAMEPLAY START ===== */
+
+
+/*
+ * ----------------------------------------------
+ * BOARD VIEWPORT
+ * ----------------------------------------------
+ *
+ * Only board screens are viewport-locked.
+ * Lobby/editor/library screens remain normal.
+ */
+
+.game:has(.board) {
+  box-sizing:
+    border-box;
+
+  width:
+    100%;
+
+  height:
+    100dvh;
+
+  min-height:
+    0;
+
+  margin:
+    0 auto;
+
+  padding:
+    calc(
+      8px +
+      env(
+        safe-area-inset-top,
+        0px
+      )
+    )
+    clamp(
+      10px,
+      1.8vw,
+      24px
+    )
+    calc(
+      54px +
+      env(
+        safe-area-inset-bottom,
+        0px
+      )
+    );
+
+  overflow:
+    hidden;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  gap:
+    clamp(
+      4px,
+      0.7vh,
+      8px
+    );
+}
+
+
+/*
+ * ----------------------------------------------
+ * COMPACT BRANDING
+ * ----------------------------------------------
+ */
+
+.game:has(.board) > img {
+  display:
+    block;
+
+  width:
+    auto;
+
+  max-width:
+    min(
+      360px,
+      38vw
+    );
+
+  max-height:
+    clamp(
+      68px,
+      11vh,
+      105px
+    );
+
+  margin:
+    0 auto;
+
+  object-fit:
+    contain;
+}
+
+
+.game:has(.board) > h1 {
+  margin:
+    0;
+
+  font-size:
+    clamp(
+      1.65rem,
+      4vh,
+      2.65rem
+    );
+
+  line-height:
+    1;
+}
+
+
+.game:has(.board) > p {
+  margin:
+    0;
+
+  font-size:
+    clamp(
+      0.78rem,
+      1.5vh,
+      0.95rem
+    );
+
+  line-height:
+    1.15;
+}
+
+
+/*
+ * The Sound control is normally the only
+ * direct button child on the board screen.
+ */
+
+.game:has(.board) > button {
+  min-height:
+    32px;
+
+  margin:
+    0 auto;
+
+  padding:
+    5px 12px;
+
+  font-size:
+    0.78rem;
+}
+
+
+/*
+ * ----------------------------------------------
+ * ROUND BANNER
+ * ----------------------------------------------
+ */
+
+.game:has(.board)
+.round-board-banner,
+.game:has(.board)
+.round-board-banner-two {
+  width:
+    min(
+      790px,
+      84%
+    );
+
+  min-height:
+    0;
+
+  margin:
+    2px auto;
+
+  padding:
+    7px 14px;
+
+  border-radius:
+    999px;
+
+  font-size:
+    clamp(
+      0.72rem,
+      1.5vh,
+      0.9rem
+    );
+
+  line-height:
+    1.1;
+}
+
+
+/*
+ * ----------------------------------------------
+ * COMPACT SCOREBOARD
+ * ----------------------------------------------
+ */
+
+.game:has(.board)
+.scoreboard {
+  width:
+    min(
+      1080px,
+      100%
+    );
+
+  margin:
+    2px auto;
+
+  display:
+    flex;
+
+  justify-content:
+    center;
+
+  align-items:
+    stretch;
+
+  flex-wrap:
+    nowrap;
+
+  gap:
+    7px;
+
+  flex:
+    0 0 auto;
+}
+
+
+.game:has(.board)
+.score-card {
+  min-width:
+    0;
+
+  flex:
+    0 1 175px;
+
+  padding:
+    5px 10px;
+
+  border-radius:
+    11px;
+
+  display:
+    flex;
+
+  flex-direction:
+    row;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    8px;
+}
+
+
+.game:has(.board)
+.score-name {
+  min-width:
+    0;
+
+  overflow:
+    hidden;
+
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
+
+  font-size:
+    clamp(
+      0.7rem,
+      1.4vh,
+      0.84rem
+    );
+}
+
+
+.game:has(.board)
+.score-card strong {
+  flex-shrink:
+    0;
+
+  font-size:
+    clamp(
+      1rem,
+      2.4vh,
+      1.35rem
+    );
+
+  line-height:
+    1;
+}
+
+
+/*
+ * ----------------------------------------------
+ * HOST TOOL DOCK
+ * ----------------------------------------------
+ */
+
+.game:has(.board)
+.host-tools-panel {
+  width:
+    min(
+      1250px,
+      100%
+    );
+
+  margin:
+    2px auto;
+
+  padding:
+    7px 9px;
+
+  border-radius:
+    12px;
+
+  display:
+    grid;
+
+  grid-template-columns:
+    minmax(
+      250px,
+      1.2fr
+    )
+    minmax(
+      180px,
+      0.72fr
+    )
+    minmax(
+      330px,
+      1.35fr
+    );
+
+  align-items:
+    end;
+
+  gap:
+    7px;
+
+  flex:
+    0 0 auto;
+}
+
+
+/*
+ * "HOST TOOLS / Game Controls / Host only"
+ * is useful in the editor, but unnecessary
+ * on every second of the board.
+ */
+
+.game:has(.board)
+.host-tools-heading {
+  display:
+    none;
+}
+
+
+.game:has(.board)
+.host-score-tools {
+  grid-template-columns:
+    minmax(
+      0,
+      1fr
+    )
+    minmax(
+      82px,
+      105px
+    );
+
+  gap:
+    6px;
+}
+
+
+.game:has(.board)
+.host-score-tools label {
+  gap:
+    0;
+}
+
+
+.game:has(.board)
+.host-score-tools label > span {
+  display:
+    none;
+}
+
+
+.game:has(.board)
+.host-score-tools select,
+.game:has(.board)
+.host-score-tools input {
+  min-height:
+    34px;
+
+  height:
+    34px;
+
+  padding:
+    4px 8px;
+
+  border-radius:
+    8px;
+
+  font-size:
+    0.78rem;
+}
+
+
+.game:has(.board)
+.host-score-buttons {
+  margin:
+    0;
+
+  gap:
+    6px;
+}
+
+
+.game:has(.board)
+.host-score-buttons button {
+  min-height:
+    34px;
+
+  height:
+    34px;
+
+  padding:
+    4px 8px;
+
+  font-size:
+    0.75rem;
+}
+
+
+.game:has(.board)
+.host-utility-buttons {
+  margin:
+    0;
+
+  padding:
+    0;
+
+  border-top:
+    0;
+
+  gap:
+    6px;
+}
+
+
+.game:has(.board)
+.host-utility-buttons button {
+  min-width:
+    0;
+
+  min-height:
+    34px;
+
+  height:
+    34px;
+
+  padding:
+    4px 6px;
+
+  overflow:
+    hidden;
+
+  font-size:
+    0.7rem;
+
+  line-height:
+    1;
+
+  white-space:
+    nowrap;
+}
+
+
+/*
+ * ----------------------------------------------
+ * BOARD OWNS THE REMAINING HEIGHT
+ * ----------------------------------------------
+ */
+
+.game:has(.board)
+.board {
+  width:
+    min(
+      1250px,
+      100%
+    );
+
+  margin:
+    2px auto 0;
+
+  min-height:
+    0;
+
+  flex:
+    1 1 auto;
+
+  align-self:
+    stretch;
+
+  gap:
+    clamp(
+      5px,
+      0.65vw,
+      9px
+    );
+}
+
+
+.game:has(.board)
+.category {
+  min-height:
+    0;
+
+  height:
+    100%;
+
+  gap:
+    clamp(
+      4px,
+      0.55vh,
+      7px
+    );
+
+  grid-template-rows:
+    minmax(
+      38px,
+      0.72fr
+    )
+    repeat(
+      5,
+      minmax(
+        0,
+        1fr
+      )
+    );
+}
+
+
+.game:has(.board)
+.category h2 {
+  min-height:
+    0;
+
+  height:
+    100%;
+
+  padding:
+    4px 6px;
+
+  border-radius:
+    8px;
+
+  font-size:
+    clamp(
+      0.64rem,
+      1.05vw,
+      0.9rem
+    );
+
+  line-height:
+    1.08;
+}
+
+
+.game:has(.board)
+.clue {
+  min-height:
+    0
+    !important;
+
+  height:
+    100%;
+
+  padding:
+    3px
+    !important;
+
+  border-radius:
+    8px
+    !important;
+
+  font-size:
+    clamp(
+      0.85rem,
+      1.55vw,
+      1.24rem
+    )
+    !important;
+
+  line-height:
+    1
+    !important;
+}
+
+
+/*
+ * ----------------------------------------------
+ * MEDIUM-WIDTH DISCORD WINDOWS
+ * ----------------------------------------------
+ */
+
+@media (
+  max-width:
+  1050px
+) {
+  .game:has(.board)
+  .host-tools-panel {
+    grid-template-columns:
+      minmax(
+        0,
+        1fr
+      )
+      minmax(
+        0,
+        1fr
+      );
+  }
+
+
+  .game:has(.board)
+  .host-utility-buttons {
+    grid-column:
+      1 / -1;
+  }
+}
+
+
+/*
+ * ----------------------------------------------
+ * SHORT DISCORD WINDOWS
+ * ----------------------------------------------
+ */
+
+@media (
+  max-height:
+  780px
+) {
+  .game:has(.board) {
+    padding-top:
+      5px;
+
+    padding-bottom:
+      calc(
+        46px +
+        env(
+          safe-area-inset-bottom,
+          0px
+        )
+      );
+
+    gap:
+      3px;
+  }
+
+
+  .game:has(.board) > img {
+    max-height:
+      64px;
+  }
+
+
+  .game:has(.board) > h1 {
+    font-size:
+      1.55rem;
+  }
+
+
+  .game:has(.board)
+  .round-board-banner,
+  .game:has(.board)
+  .round-board-banner-two {
+    padding:
+      5px 10px;
+  }
+
+
+  .game:has(.board)
+  .score-card {
+    padding:
+      3px 8px;
+  }
+
+
+  .game:has(.board)
+  .host-tools-panel {
+    padding:
+      5px 7px;
+  }
+
+
+  .game:has(.board)
+  .host-score-tools select,
+  .game:has(.board)
+  .host-score-tools input,
+  .game:has(.board)
+  .host-score-buttons button,
+  .game:has(.board)
+  .host-utility-buttons button {
+    min-height:
+      30px;
+
+    height:
+      30px;
+  }
+}
+
+
+/*
+ * ----------------------------------------------
+ * VERY SHORT WINDOWS
+ * ----------------------------------------------
+ */
+
+@media (
+  max-height:
+  680px
+) {
+  .game:has(.board) > img {
+    display:
+      none;
+  }
+
+
+  .game:has(.board)
+  .category {
+    gap:
+      3px;
+  }
+
+
+  .game:has(.board)
+  .category h2 {
+    font-size:
+      0.66rem;
+  }
+
+
+  .game:has(.board)
+  .clue {
+    font-size:
+      0.88rem
+      !important;
+  }
+}
+
+
+/* ===== BUZZBOARD COMPACT GAMEPLAY END ===== */
