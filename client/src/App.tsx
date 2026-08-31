@@ -982,6 +982,111 @@ function playAudioCue(
  * --------------------------------
  */
 
+function getPlayerAvatarUrl(
+  player:
+    Player
+) {
+  const avatar =
+    player.avatar;
+
+
+  if (!avatar) {
+    return null;
+  }
+
+
+  /*
+   * Future-proof this in case Discord
+   * ever gives us a complete URL.
+   */
+  if (
+    avatar.startsWith(
+      "http://"
+    ) ||
+    avatar.startsWith(
+      "https://"
+    )
+  ) {
+    return avatar;
+  }
+
+
+  const extension =
+    avatar.startsWith(
+      "a_"
+    )
+      ? "gif"
+      : "png";
+
+
+  return (
+    `https://cdn.discordapp.com/avatars/` +
+    `${player.id}/${avatar}.${extension}?size=128`
+  );
+}
+
+
+function PlayerAvatar({
+  player,
+  size =
+    "normal",
+}: {
+  player:
+    Player;
+
+  size?:
+    "small" |
+    "normal" |
+    "large";
+}) {
+  const avatarUrl =
+    getPlayerAvatarUrl(
+      player
+    );
+
+
+  if (avatarUrl) {
+    return (
+      <img
+        className={
+          `player-avatar player-avatar-${size}`
+        }
+        src={
+          avatarUrl
+        }
+        alt=""
+        aria-hidden="true"
+      />
+    );
+  }
+
+
+  const initial =
+    (
+      player.name ||
+      player.username ||
+      "?"
+    )
+      .trim()
+      .charAt(
+        0
+      )
+      .toUpperCase() ||
+    "?";
+
+
+  return (
+    <span
+      className={
+        `player-avatar player-avatar-fallback player-avatar-${size}`
+      }
+      aria-hidden="true"
+    >
+      {initial}
+    </span>
+  );
+}
+
 function App() {
   const [
     status,
@@ -5764,6 +5869,13 @@ function App() {
               player.id
             }
           >
+            <PlayerAvatar
+              player={
+                player
+              }
+              size="small"
+            />
+
             <span className="score-name">
               {
                 player.name
@@ -5869,6 +5981,12 @@ function App() {
                         )
                       }
                     >
+                      <PlayerAvatar
+                        player={
+                          player
+                        }
+                      />
+
                       <span>
                         {player.name}
                       </span>
@@ -7585,16 +7703,22 @@ function App() {
                         player.id
                       }
                     >
-                      🟢{" "}
-                      {
-                        player.name
-                      }
+                      <PlayerAvatar
+                        player={
+                          player
+                        }
+                      />
+
+                      <span className="lobby-player-name">
+                        {
+                          player.name
+                        }
+                      </span>
 
                       {player.id ===
                         gameState
                           .hostId && (
                         <strong>
-                          {" "}
                           👑 HOST
                         </strong>
                       )}

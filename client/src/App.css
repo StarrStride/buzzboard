@@ -9186,3 +9186,199 @@ button:last-child {
 
 
 /* ===== BUZZBOARD CLEAN HOST DOCK END ===== */
+
+/* ===== BUZZBOARD PLAYER AVATARS START ===== */
+
+
+.player-avatar {
+  display:
+    inline-flex;
+
+  flex:
+    0 0 auto;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  overflow:
+    hidden;
+
+  border:
+    1px solid
+    rgba(
+      242,
+      174,
+      218,
+      0.42
+    );
+
+  border-radius:
+    50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      #6d386f,
+      #321c42
+    );
+
+  color:
+    #fff4fb;
+
+  object-fit:
+    cover;
+
+  font-weight:
+    900;
+
+  line-height:
+    1;
+
+  box-shadow:
+    0 3px 9px
+      rgba(
+        3,
+        0,
+        8,
+        0.22
+      );
+}
+
+
+.player-avatar-small {
+  width:
+    26px;
+
+  height:
+    26px;
+
+  min-width:
+    26px;
+
+  font-size:
+    0.68rem;
+}
+
+
+.player-avatar-normal {
+  width:
+    38px;
+
+  height:
+    38px;
+
+  min-width:
+    38px;
+
+  font-size:
+    0.84rem;
+}
+
+
+.player-avatar-large {
+  width:
+    72px;
+
+  height:
+    72px;
+
+  min-width:
+    72px;
+
+  font-size:
+    1.35rem;
+}
+
+
+/*
+ * Compact scoreboard already uses a horizontal
+ * layout, so the avatar slots right into it.
+ */
+
+.score-card {
+  align-items:
+    center;
+}
+
+
+/*
+ * Lobby player list becomes a proper player row.
+ */
+
+.players li {
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    9px;
+}
+
+
+.lobby-player-name {
+  min-width:
+    0;
+
+  overflow:
+    hidden;
+
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
+}
+
+
+/*
+ * DD contestant choice feels much more like
+ * choosing an actual player now.
+ */
+
+.daily-double-player-button {
+  align-items:
+    center;
+}
+
+
+.daily-double-player-button
+.player-avatar {
+  margin:
+    0 auto 2px;
+}
+
+
+/*
+ * On compact gameplay score cards, keep things
+ * tiny enough that six players can still fit.
+ */
+
+.game:has(.board)
+.score-card
+.player-avatar,
+.game:has(.clue-screen)
+.score-card
+.player-avatar,
+.game:has(.daily-double-screen)
+.score-card
+.player-avatar {
+  width:
+    24px;
+
+  height:
+    24px;
+
+  min-width:
+    24px;
+}
+
+
+/* ===== BUZZBOARD PLAYER AVATARS END ===== */
