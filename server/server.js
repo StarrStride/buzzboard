@@ -1451,6 +1451,119 @@ function countClues(
 }
 
 
+/*
+ * ================================================
+ * PRIVATE USER LIBRARIES
+ * ================================================
+ *
+ * Persistent game boards are private to the
+ * Discord account that created them.
+ *
+ * Saves created before ownership support may
+ * belong to one explicitly configured legacy
+ * Discord account:
+ *
+ * BUZZBOARD_LEGACY_OWNER_ID
+ */
+
+const LEGACY_LIBRARY_OWNER_ID =
+  (
+    process.env
+      .BUZZBOARD_LEGACY_OWNER_ID ??
+    ""
+  ).trim();
+
+
+function getLibraryOwnerId(
+  socket
+) {
+  const playerId =
+    socket.data
+      ?.playerId;
+
+
+  if (
+    typeof playerId !==
+      "string" ||
+    !playerId.trim()
+  ) {
+    return null;
+  }
+
+
+  return playerId.trim();
+}
+
+
+function savedGameBelongsToOwner(
+  savedGame,
+  ownerId
+) {
+  if (
+    !savedGame ||
+    !ownerId
+  ) {
+    return false;
+  }
+
+
+  if (
+    savedGame.ownerId ===
+    ownerId
+  ) {
+    return true;
+  }
+
+
+  /*
+   * An old save without ownerId is not public.
+   *
+   * It is visible only to the account explicitly
+   * configured as the legacy owner.
+   */
+
+  return (
+    !savedGame.ownerId &&
+    Boolean(
+      LEGACY_LIBRARY_OWNER_ID
+    ) &&
+    ownerId ===
+      LEGACY_LIBRARY_OWNER_ID
+  );
+}
+
+
+async function migrateLegacySavedGame(
+  savedGame,
+  ownerId
+) {
+  if (
+    !savedGame ||
+    savedGame.ownerId ||
+    !LEGACY_LIBRARY_OWNER_ID ||
+    ownerId !==
+      LEGACY_LIBRARY_OWNER_ID
+  ) {
+    return savedGame;
+  }
+
+
+  const migrated =
+    await saveGameToLibrary({
+      ...savedGame,
+
+      ownerId,
+    });
+
+
+  console.log(
+    `Migrated legacy saved game "${migrated.title}" to its owner.`
+  );
+
+
+  return migrated;
+}
+
 function makeLibrarySummary(
   savedGame
 ) {
@@ -1490,8 +1603,34 @@ async function sendLibrary(
   socket
 ) {
   try {
-    const savedGames =
+    const ownerId =
+      getLibraryOwnerId(
+        socket
+      );
+
+
+    if (!ownerId) {
+      throw new Error(
+        "Missing library owner."
+      );
+    }
+
+
+    const allSavedGames =
       await getSavedGames();
+
+
+    const savedGames =
+      allSavedGames.filter(
+        (
+          savedGame
+        ) =>
+          savedGameBelongsToOwner(
+            savedGame,
+            ownerId
+          )
+      );
+
 
     socket.emit(
       "saved_games",
@@ -1506,8 +1645,10 @@ async function sendLibrary(
       error
     );
 
+
     socket.emit(
       "library_error",
+
       {
         message:
           "Could not load saved games.",
@@ -3339,6 +3480,7 @@ io.on(
               .instanceId
           );
 
+
         if (
           !game ||
           !playerIsHost(
@@ -3352,53 +3494,122 @@ io.on(
           return;
         }
 
+
         const normalized =
           normalizeGameConfig(
             rawConfig
           );
+
 
         if (
           !normalized
         ) {
           socket.emit(
             "library_error",
+
             {
               message:
-                "BuzzBoard requires six categories with five clues in both Round 1 and Round 2.",
+                "BuzzBoard requires exactly 6 categories with 5 clues each.",
             }
           );
 
           return;
         }
 
+
+        const ownerId =
+          getLibraryOwnerId(
+            socket
+          );
+
+
+        if (!ownerId) {
+          socket.emit(
+            "library_error",
+
+            {
+              message:
+                "Could not identify the library owner.",
+            }
+          );
+
+          return;
+        }
+
+
         try {
+          /*
+           * When updating an existing save,
+           * first verify that ID belongs to
+           * the current Discord account.
+           */
+
+          if (
+            normalized.id
+          ) {
+            const existing =
+              await loadGameFromLibrary(
+                normalized.id
+              );
+
+
+            if (
+              existing &&
+              !savedGameBelongsToOwner(
+                existing,
+                ownerId
+              )
+            ) {
+              socket.emit(
+                "library_error",
+
+                {
+                  message:
+                    "Saved game not found.",
+                }
+              );
+
+              return;
+            }
+          }
+
+
           const savedGame =
-            await saveGameToLibrary(
-              normalized
-            );
+            await saveGameToLibrary({
+              ...normalized,
+
+              ownerId,
+            });
+
 
           game.gameConfig =
             savedGame;
+
 
           resetGameForConfig(
             game
           );
 
+
           console.log(
-            `Saved to library: ${savedGame.title}`
+            `Saved to private library: ${savedGame.title}`
           );
+
 
           socket.emit(
             "library_message",
+
             {
               message:
-                `"${savedGame.title}" saved \u2713`,
+                `"${savedGame.title}" saved ✓`,
             }
           );
+
 
           sendGameState(
             game.instanceId
           );
+
 
           await sendLibrary(
             socket
@@ -3409,8 +3620,10 @@ io.on(
             error
           );
 
+
           socket.emit(
             "library_error",
+
             {
               message:
                 "Could not save this game.",
@@ -3420,16 +3633,18 @@ io.on(
       }
     );
 
-
     socket.on(
       "load_saved_game",
 
-      async (id) => {
+      async (
+        id
+      ) => {
         const game =
           games.get(
             socket.data
               .instanceId
           );
+
 
         if (
           !game ||
@@ -3444,17 +3659,50 @@ io.on(
           return;
         }
 
+
+        const ownerId =
+          getLibraryOwnerId(
+            socket
+          );
+
+
+        if (!ownerId) {
+          socket.emit(
+            "library_error",
+
+            {
+              message:
+                "Could not identify the library owner.",
+            }
+          );
+
+          return;
+        }
+
+
         try {
-          const savedGame =
+          let savedGame =
             await loadGameFromLibrary(
               id
             );
 
+
+          /*
+           * Do not reveal whether another user's
+           * board exists. Unauthorized IDs behave
+           * exactly like nonexistent IDs.
+           */
+
           if (
-            !savedGame
+            !savedGame ||
+            !savedGameBelongsToOwner(
+              savedGame,
+              ownerId
+            )
           ) {
             socket.emit(
               "library_error",
+
               {
                 message:
                   "Saved game not found.",
@@ -3464,16 +3712,26 @@ io.on(
             return;
           }
 
+
+          savedGame =
+            await migrateLegacySavedGame(
+              savedGame,
+              ownerId
+            );
+
+
           const normalized =
             normalizeGameConfig(
               savedGame
             );
+
 
           if (
             !normalized
           ) {
             socket.emit(
               "library_error",
+
               {
                 message:
                   "That saved game is invalid.",
@@ -3483,6 +3741,7 @@ io.on(
             return;
           }
 
+
           game.gameConfig = {
             ...normalized,
 
@@ -3490,24 +3749,39 @@ io.on(
               savedGame.id,
           };
 
+
           resetGameForConfig(
             game
           );
 
+
           console.log(
-            `Loaded game: ${savedGame.title}`
+            `Loaded private game: ${savedGame.title}`
           );
+
 
           socket.emit(
             "library_message",
+
             {
               message:
-                `"${savedGame.title}" loaded \u2713`,
+                `"${savedGame.title}" loaded ✓`,
             }
           );
 
+
           sendGameState(
             game.instanceId
+          );
+
+
+          /*
+           * If a legacy save was migrated above,
+           * refresh the host's private library.
+           */
+
+          await sendLibrary(
+            socket
           );
         } catch (error) {
           console.error(
@@ -3515,8 +3789,10 @@ io.on(
             error
           );
 
+
           socket.emit(
             "library_error",
+
             {
               message:
                 "Could not load this game.",
@@ -3526,16 +3802,18 @@ io.on(
       }
     );
 
-
     socket.on(
       "delete_saved_game",
 
-      async (id) => {
+      async (
+        id
+      ) => {
         const game =
           games.get(
             socket.data
               .instanceId
           );
+
 
         if (
           !game ||
@@ -3550,17 +3828,44 @@ io.on(
           return;
         }
 
+
+        const ownerId =
+          getLibraryOwnerId(
+            socket
+          );
+
+
+        if (!ownerId) {
+          socket.emit(
+            "library_error",
+
+            {
+              message:
+                "Could not identify the library owner.",
+            }
+          );
+
+          return;
+        }
+
+
         try {
-          const deleted =
-            await deleteGameFromLibrary(
+          const existing =
+            await loadGameFromLibrary(
               id
             );
 
+
           if (
-            !deleted
+            !existing ||
+            !savedGameBelongsToOwner(
+              existing,
+              ownerId
+            )
           ) {
             socket.emit(
               "library_error",
+
               {
                 message:
                   "Saved game not found.",
@@ -3570,17 +3875,43 @@ io.on(
             return;
           }
 
+
+          const deleted =
+            await deleteGameFromLibrary(
+              id
+            );
+
+
+          if (
+            !deleted
+          ) {
+            socket.emit(
+              "library_error",
+
+              {
+                message:
+                  "Saved game not found.",
+              }
+            );
+
+            return;
+          }
+
+
           console.log(
-            `Deleted saved game: ${id}`
+            `Deleted private saved game: ${id}`
           );
+
 
           socket.emit(
             "library_message",
+
             {
               message:
                 "Saved game deleted.",
             }
           );
+
 
           await sendLibrary(
             socket
@@ -3591,8 +3922,10 @@ io.on(
             error
           );
 
+
           socket.emit(
             "library_error",
+
             {
               message:
                 "Could not delete this game.",
@@ -3601,13 +3934,6 @@ io.on(
         }
       }
     );
-
-
-    /*
-     * -----------------------------
-     * SAVE CURRENT CONFIG
-     * -----------------------------
-     */
 
     socket.on(
       "save_game_config",
