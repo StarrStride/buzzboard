@@ -7719,7 +7719,13 @@ function App() {
    */
 
   return (
-    <main className="game">
+    <main
+      className={
+        isHost
+          ? "game lobby-host-view"
+          : "game lobby-spectator-view"
+      }
+    >
       <h1>
         BuzzBoard
       </h1>

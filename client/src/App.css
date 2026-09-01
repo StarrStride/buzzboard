@@ -9783,3 +9783,325 @@ strong {
 
 
 /* ===== BUZZBOARD HOST SPECTATOR UI END ===== */
+
+/* ===== BUZZBOARD COMPACT SPECTATOR LOBBY START ===== */
+
+
+/*
+ * Only players waiting for the host receive this
+ * layout. The host library/editor remains unchanged.
+ */
+
+.game.lobby-spectator-view {
+  height:
+    100dvh;
+
+  min-height:
+    100dvh;
+
+  overflow:
+    hidden;
+
+  padding:
+    clamp(
+      10px,
+      1.5vh,
+      16px
+    )
+    18px
+    clamp(
+      82px,
+      10vh,
+      104px
+    );
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    center;
+
+  justify-content:
+    flex-start;
+}
+
+
+/*
+ * The normal lobby logo is currently allowed to
+ * reach ~520px. Waiting players get the compact
+ * version instead.
+ */
+
+.game.lobby-spectator-view:has(.lobby-panel)::before {
+  width:
+    min(
+      280px,
+      48vw
+    );
+
+  margin-bottom:
+    0;
+}
+
+
+/*
+ * Tighten the little subtitle beneath the logo.
+ */
+
+.game.lobby-spectator-view > p {
+  margin:
+    1px 0 3px
+    !important;
+
+  font-size:
+    0.92rem;
+}
+
+
+/*
+ * If Sound is rendered as the direct lobby button,
+ * make it slightly smaller here.
+ */
+
+.game.lobby-spectator-view > button {
+  min-height:
+    0;
+
+  margin:
+    5px 0 7px;
+
+  padding:
+    8px 16px;
+}
+
+
+/*
+ * Main waiting-player card.
+ */
+
+.game.lobby-spectator-view .lobby-panel {
+  width:
+    min(
+      760px,
+      94%
+    );
+
+  max-width:
+    760px;
+
+  margin:
+    8px auto 0;
+
+  padding:
+    17px 20px;
+
+  border-radius:
+    18px;
+}
+
+
+.game.lobby-spectator-view .lobby-panel > h2 {
+  margin:
+    0 0 3px;
+
+  font-size:
+    clamp(
+      1.25rem,
+      2.6vw,
+      1.65rem
+    );
+}
+
+
+.game.lobby-spectator-view .lobby-panel > p {
+  margin:
+    0 0 8px;
+
+  font-size:
+    0.92rem;
+}
+
+
+/*
+ * Player list.
+ */
+
+.game.lobby-spectator-view .players {
+  margin:
+    7px 0;
+}
+
+
+.game.lobby-spectator-view .players h3 {
+  margin:
+    0 0 7px;
+
+  font-size:
+    1.05rem;
+}
+
+
+.game.lobby-spectator-view .players ul {
+  margin:
+    0;
+
+  padding:
+    0;
+}
+
+
+.game.lobby-spectator-view .players li {
+  min-height:
+    42px;
+
+  margin:
+    5px 0;
+
+  padding:
+    7px 11px;
+
+  border-radius:
+    10px;
+
+  gap:
+    7px;
+}
+
+
+.game.lobby-spectator-view
+.players li
+.player-avatar {
+  width:
+    32px;
+
+  height:
+    32px;
+
+  min-width:
+    32px;
+}
+
+
+.game.lobby-spectator-view
+.lobby-player-name {
+  font-size:
+    0.92rem;
+}
+
+
+.game.lobby-spectator-view
+.spectator-badge {
+  padding:
+    2px 6px;
+
+  font-size:
+    0.58rem;
+}
+
+
+/*
+ * Loaded-game indicator shown to non-hosts.
+ */
+
+.game.lobby-spectator-view .waiting-game {
+  margin:
+    7px 0;
+
+  padding:
+    8px 11px;
+
+  gap:
+    2px;
+
+  font-size:
+    0.86rem;
+}
+
+
+/*
+ * Waiting for Host button.
+ */
+
+.game.lobby-spectator-view
+.lobby-panel > button:last-child {
+  margin-top:
+    6px;
+
+  padding:
+    8px 17px;
+
+  min-height:
+    36px;
+
+  font-size:
+    0.86rem;
+}
+
+
+/*
+ * Slightly more aggressive compression for short
+ * Discord Activity windows.
+ */
+
+@media (
+  max-height:
+  720px
+) {
+  .game.lobby-spectator-view {
+    padding-top:
+      7px;
+
+    padding-bottom:
+      76px;
+  }
+
+
+  .game.lobby-spectator-view:has(.lobby-panel)::before {
+    width:
+      min(
+        230px,
+        42vw
+      );
+  }
+
+
+  .game.lobby-spectator-view .lobby-panel {
+    margin-top:
+      5px;
+
+    padding:
+      13px 17px;
+  }
+
+
+  .game.lobby-spectator-view .players li {
+    min-height:
+      38px;
+
+    margin:
+      4px 0;
+
+    padding:
+      5px 9px;
+  }
+
+
+  .game.lobby-spectator-view
+  .players li
+  .player-avatar {
+    width:
+      29px;
+
+    height:
+      29px;
+
+    min-width:
+      29px;
+  }
+}
+
+
+/* ===== BUZZBOARD COMPACT SPECTATOR LOBBY END ===== */
