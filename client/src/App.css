@@ -10105,3 +10105,284 @@ strong {
 
 
 /* ===== BUZZBOARD COMPACT SPECTATOR LOBBY END ===== */
+
+/* ===== BUZZBOARD HOST SESSION CONTROLS START ===== */
+
+
+.host-session-controls {
+  width: 100%;
+  margin-top: 7px;
+  padding-top: 7px;
+
+  border-top:
+    1px solid
+    rgba(
+      233,
+      152,
+      209,
+      0.20
+    );
+
+  display:
+    grid;
+
+  gap:
+    7px;
+}
+
+
+.host-session-buttons {
+  display:
+    grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(
+        0,
+        1fr
+      )
+    );
+
+  gap:
+    7px;
+}
+
+
+.host-session-buttons button {
+  min-height:
+    34px;
+
+  padding:
+    7px 11px
+    !important;
+
+  font-size:
+    0.78rem
+    !important;
+
+  white-space:
+    nowrap;
+}
+
+
+.host-restart-game-button {
+  border-color:
+    rgba(
+      241,
+      191,
+      91,
+      0.50
+    )
+    !important;
+
+  background:
+    rgba(
+      111,
+      75,
+      32,
+      0.88
+    )
+    !important;
+
+  color:
+    #fff0bd
+    !important;
+}
+
+
+.host-restart-game-button:hover:not(:disabled) {
+  background:
+    rgba(
+      139,
+      94,
+      39,
+      0.95
+    )
+    !important;
+}
+
+
+.host-exit-game-button {
+  border-color:
+    rgba(
+      231,
+      119,
+      149,
+      0.48
+    )
+    !important;
+
+  background:
+    rgba(
+      105,
+      45,
+      65,
+      0.90
+    )
+    !important;
+
+  color:
+    #ffd8e5
+    !important;
+}
+
+
+.host-exit-game-button:hover:not(:disabled) {
+  background:
+    rgba(
+      133,
+      53,
+      79,
+      0.96
+    )
+    !important;
+}
+
+
+.host-session-confirm {
+  padding:
+    9px 11px;
+
+  border:
+    1px solid
+    rgba(
+      241,
+      174,
+      211,
+      0.28
+    );
+
+  border-radius:
+    10px;
+
+  background:
+    rgba(
+      35,
+      16,
+      43,
+      0.88
+    );
+
+  display:
+    grid;
+
+  gap:
+    4px;
+
+  text-align:
+    left;
+}
+
+
+.host-session-confirm > strong {
+  color:
+    #fff0f8;
+
+  font-size:
+    0.82rem;
+}
+
+
+.host-session-confirm > span {
+  color:
+    rgba(
+      239,
+      215,
+      231,
+      0.76
+    );
+
+  font-size:
+    0.72rem;
+
+  line-height:
+    1.35;
+}
+
+
+.host-session-confirm-buttons {
+  margin-top:
+    3px;
+
+  display:
+    grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(
+        0,
+        1fr
+      )
+    );
+
+  gap:
+    6px;
+}
+
+
+.host-session-confirm-buttons button {
+  min-height:
+    31px;
+
+  padding:
+    6px 9px
+    !important;
+
+  font-size:
+    0.72rem
+    !important;
+}
+
+
+.confirm-restart-button {
+  background:
+    #7b5725
+    !important;
+
+  border-color:
+    #b88a42
+    !important;
+}
+
+
+.confirm-exit-button {
+  background:
+    #81364f
+    !important;
+
+  border-color:
+    #ba5878
+    !important;
+}
+
+
+.cancel-session-button {
+  background:
+    rgba(
+      79,
+      42,
+      86,
+      0.88
+    )
+    !important;
+
+  color:
+    #ead9e8
+    !important;
+}
+
+
+@media (
+  max-width:
+  560px
+) {
+  .host-session-buttons {
+    grid-template-columns:
+      1fr;
+  }
+}
+
+
+/* ===== BUZZBOARD HOST SESSION CONTROLS END ===== */

@@ -1372,6 +1372,24 @@ function App() {
       null
     );
 
+  /*
+   * --------------------------------
+   * BUZZBOARD HOST SESSION CONTROLS
+   * --------------------------------
+   */
+
+  const [
+    sessionConfirm,
+    setSessionConfirm,
+  ] =
+    useState<
+      | "restart"
+      | "exit"
+      | null
+    >(
+      null
+    );
+
   const socketRef =
     useRef<
       Socket | null
@@ -5203,6 +5221,33 @@ function App() {
   }
 
 
+  function restartGameSession() {
+    setSessionConfirm(
+      null
+    );
+
+    stopLocalClueAudio();
+
+    socketRef.current
+      ?.emit(
+        "restart_game"
+      );
+  }
+
+
+  function exitGameSession() {
+    setSessionConfirm(
+      null
+    );
+
+    stopLocalClueAudio();
+
+    socketRef.current
+      ?.emit(
+        "return_to_lobby"
+      );
+  }
+
   /*
    * --------------------------------
    * DERIVED STATE
@@ -5503,6 +5548,94 @@ function App() {
       gameState.phase
     );
 
+
+  const hostSessionControls =
+    isHost &&
+    gameState.phase !==
+      "lobby" ? (
+      <div className="host-session-controls">
+        <div className="host-session-buttons">
+          <button
+            type="button"
+            className="host-restart-game-button"
+            onClick={() =>
+              setSessionConfirm(
+                "restart"
+              )
+            }
+          >
+            ↻ Restart Game
+          </button>
+
+          <button
+            type="button"
+            className="host-exit-game-button"
+            onClick={() =>
+              setSessionConfirm(
+                "exit"
+              )
+            }
+          >
+            ↩ Exit to Lobby
+          </button>
+        </div>
+
+        {sessionConfirm !==
+          null && (
+          <div className="host-session-confirm">
+            <strong>
+              {sessionConfirm ===
+              "restart"
+                ? "Restart this game?"
+                : "Exit to lobby?"}
+            </strong>
+
+            <span>
+              {sessionConfirm ===
+              "restart"
+                ? "All scores and game progress will be reset. Everyone will remain connected."
+                : "Current game progress will be cleared. Everyone will return to the lobby."}
+            </span>
+
+            <div className="host-session-confirm-buttons">
+              <button
+                type="button"
+                className={
+                  sessionConfirm ===
+                  "restart"
+                    ? "confirm-restart-button"
+                    : "confirm-exit-button"
+                }
+                onClick={
+                  sessionConfirm ===
+                  "restart"
+                    ? restartGameSession
+                    : exitGameSession
+                }
+              >
+                {sessionConfirm ===
+                "restart"
+                  ? "Yes, Restart"
+                  : "Yes, Exit"}
+              </button>
+
+              <button
+                type="button"
+                className="cancel-session-button"
+                onClick={() =>
+                  setSessionConfirm(
+                    null
+                  )
+                }
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    ) :
+      null;
 
   /*
    * --------------------------------
@@ -5868,6 +6001,8 @@ function App() {
             ↶ Undo
           </button>
         </div>
+
+        {hostSessionControls}
 
         {gameState
           .hostTools

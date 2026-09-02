@@ -5401,6 +5401,64 @@ io.on(
      * -----------------------------
      */
 
+    /*
+     * -----------------------------
+     * RESTART CURRENT GAME
+     *
+     * Host only.
+     * Same board + players.
+     * Fresh Round 1 state.
+     * -----------------------------
+     */
+
+    socket.on(
+      "restart_game",
+
+      () => {
+        const game =
+          games.get(
+            socket.data
+              .instanceId
+          );
+
+
+        if (
+          !game ||
+          !playerIsHost(
+            game,
+            socket.data
+              .playerId
+          ) ||
+          !game.gameConfig ||
+          getContestants(
+            game
+          ).length ===
+            0
+        ) {
+          return;
+        }
+
+
+        resetRound(
+          game
+        );
+
+
+        game.phase =
+          "board";
+
+
+        console.log(
+          `Game restarted from Round 1: ${game.instanceId}`
+        );
+
+
+        sendGameState(
+          game.instanceId
+        );
+      }
+    );
+
     socket.on(
       "return_to_lobby",
 
