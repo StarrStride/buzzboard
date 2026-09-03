@@ -12473,3 +12473,683 @@ button {
 
 
 /* ===== BUZZBOARD COMPACT HOST MENU V1 END ===== */
+
+/* ===== BUZZBOARD HOST WORKSPACE V2 START ===== */
+
+
+/*
+ * ================================================
+ * HOST-ONLY PAGE HEADER
+ * ================================================
+ */
+
+.game:has(.game-library) {
+  padding-top:
+    26px
+    !important;
+}
+
+
+/*
+ * Host menu gets a smaller BuzzBoard logo.
+ * Gameplay screens stay untouched.
+ */
+
+.game:has(.game-library)::before {
+  max-width:
+    430px
+    !important;
+
+  width:
+    min(
+      430px,
+      55vw
+    )
+    !important;
+
+  margin-bottom:
+    4px
+    !important;
+}
+
+
+.game:has(.game-library) > p {
+  margin:
+    0 auto 5px
+    !important;
+
+  font-size:
+    0.88rem
+    !important;
+}
+
+
+/*
+ * Sound control.
+ */
+
+.game:has(.game-library)
+.sound-toggle,
+.game:has(.game-library)
+.sound-button {
+  margin:
+    4px auto 8px
+    !important;
+
+  min-height:
+    32px
+    !important;
+
+  padding:
+    5px 12px
+    !important;
+}
+
+
+/*
+ * ================================================
+ * EDITOR SHELL
+ * ================================================
+ */
+
+.game:has(.game-library)
+.editor {
+  width:
+    min(
+      1180px,
+      96%
+    )
+    !important;
+
+  max-width:
+    1180px
+    !important;
+
+  padding:
+    18px 20px 80px
+    !important;
+
+  border-radius:
+    16px
+    !important;
+}
+
+
+/*
+ * Editor title area.
+ */
+
+.game:has(.game-library)
+.editor-heading {
+  margin:
+    0 0 12px
+    !important;
+
+  padding:
+    0
+    !important;
+
+  align-items:
+    center
+    !important;
+}
+
+
+.game:has(.game-library)
+.editor-heading h2 {
+  margin:
+    0
+    !important;
+
+  font-size:
+    1.55rem
+    !important;
+}
+
+
+.game:has(.game-library)
+.editor-heading p {
+  margin:
+    3px 0 0
+    !important;
+
+  font-size:
+    0.78rem;
+
+  line-height:
+    1.25;
+}
+
+
+.game:has(.game-library)
+.editor-status {
+  padding:
+    5px 10px
+    !important;
+
+  font-size:
+    0.68rem
+    !important;
+}
+
+
+/*
+ * ================================================
+ * GAME TITLE
+ * ================================================
+ */
+
+.game:has(.game-library)
+.editor-title {
+  margin:
+    0 0 14px
+    !important;
+}
+
+
+.game:has(.game-library)
+.editor-title > span {
+  margin-bottom:
+    5px
+    !important;
+
+  font-size:
+    0.78rem;
+}
+
+
+.game:has(.game-library)
+.editor-title input {
+  min-height:
+    42px
+    !important;
+
+  padding:
+    8px 12px
+    !important;
+
+  font-size:
+    0.95rem
+    !important;
+}
+
+
+/*
+ * ================================================
+ * ROUND BLOCKS
+ * ================================================
+ */
+
+.game:has(.game-library)
+.round-editor-block {
+  margin:
+    12px 0
+    !important;
+
+  padding:
+    15px 16px
+    !important;
+
+  border-radius:
+    13px
+    !important;
+}
+
+
+.game:has(.game-library)
+.round-editor-heading {
+  margin:
+    0 0 12px
+    !important;
+
+  padding-bottom:
+    10px
+    !important;
+
+  align-items:
+    center
+    !important;
+}
+
+
+.game:has(.game-library)
+.round-editor-heading h2 {
+  margin:
+    1px 0
+    !important;
+
+  font-size:
+    1.3rem
+    !important;
+}
+
+
+.game:has(.game-library)
+.round-editor-heading p {
+  margin:
+    1px 0
+    !important;
+
+  font-size:
+    0.76rem;
+}
+
+
+.game:has(.game-library)
+.round-values,
+.game:has(.game-library)
+.round-value-summary {
+  padding:
+    5px 9px
+    !important;
+
+  font-size:
+    0.68rem
+    !important;
+
+  white-space:
+    nowrap;
+}
+
+
+/*
+ * ================================================
+ * CATEGORY BLOCKS
+ * ================================================
+ */
+
+.game:has(.game-library)
+.editor-category {
+  margin:
+    9px 0
+    !important;
+
+  padding:
+    12px
+    !important;
+
+  border-radius:
+    12px
+    !important;
+}
+
+
+.game:has(.game-library)
+.category-name-field {
+  margin:
+    0 0 9px
+    !important;
+}
+
+
+.game:has(.game-library)
+.category-name-field > span {
+  margin-bottom:
+    4px
+    !important;
+
+  font-size:
+    0.72rem;
+}
+
+
+.game:has(.game-library)
+.category-name-field input {
+  min-height:
+    37px
+    !important;
+
+  padding:
+    7px 10px
+    !important;
+
+  font-size:
+    0.85rem
+    !important;
+}
+
+
+/*
+ * ================================================
+ * FIVE CLUES
+ * ================================================
+ */
+
+.game:has(.game-library)
+.editor-clues {
+  grid-template-columns:
+    repeat(
+      5,
+      minmax(
+        0,
+        1fr
+      )
+    )
+    !important;
+
+  gap:
+    8px
+    !important;
+}
+
+
+.game:has(.game-library)
+.editor-clue {
+  min-width:
+    0;
+
+  margin:
+    0
+    !important;
+
+  padding:
+    9px
+    !important;
+
+  border-radius:
+    10px
+    !important;
+}
+
+
+.game:has(.game-library)
+.editor-clue h3 {
+  margin:
+    0 0 6px
+    !important;
+
+  font-size:
+    0.92rem
+    !important;
+}
+
+
+/*
+ * Daily Double toggle.
+ */
+
+.game:has(.game-library)
+.daily-double-toggle {
+  min-height:
+    28px
+    !important;
+
+  margin:
+    0 0 6px
+    !important;
+
+  padding:
+    4px 6px
+    !important;
+
+  gap:
+    5px
+    !important;
+
+  border-radius:
+    7px
+    !important;
+
+  font-size:
+    0.65rem
+    !important;
+}
+
+
+/*
+ * Inputs and textareas inside clue cards.
+ */
+
+.game:has(.game-library)
+.editor-clue label {
+  margin:
+    5px 0
+    !important;
+
+  gap:
+    3px
+    !important;
+}
+
+
+.game:has(.game-library)
+.editor-clue label > span {
+  font-size:
+    0.62rem
+    !important;
+}
+
+
+.game:has(.game-library)
+.editor-clue input[type="text"],
+.game:has(.game-library)
+.editor-clue input[type="number"],
+.game:has(.game-library)
+.editor-clue textarea {
+  padding:
+    6px 7px
+    !important;
+
+  border-radius:
+    7px
+    !important;
+
+  font-size:
+    0.72rem
+    !important;
+}
+
+
+.game:has(.game-library)
+.editor-clue textarea {
+  min-height:
+    58px
+    !important;
+
+  resize:
+    vertical;
+}
+
+
+/*
+ * ================================================
+ * IMAGE / AUDIO CLUE CONTROLS
+ * ================================================
+ */
+
+.game:has(.game-library)
+.clue-image-upload-button,
+.game:has(.game-library)
+.audio-clue-upload-button,
+.game:has(.game-library)
+.editor-clue button {
+  min-height:
+    30px;
+
+  padding:
+    5px 8px
+    !important;
+
+  border-radius:
+    7px
+    !important;
+
+  font-size:
+    0.65rem
+    !important;
+}
+
+
+/*
+ * ================================================
+ * STICKY SAVE / START BAR
+ *
+ * Smaller, right-aligned, stops covering half of
+ * the editor.
+ * ================================================
+ */
+
+.game:has(.game-library)
+.editor-actions {
+  left:
+    auto
+    !important;
+
+  right:
+    24px
+    !important;
+
+  bottom:
+    18px
+    !important;
+
+  width:
+    auto
+    !important;
+
+  min-width:
+    0
+    !important;
+
+  max-width:
+    calc(
+      100% - 48px
+    );
+
+  padding:
+    7px
+    !important;
+
+  gap:
+    7px
+    !important;
+
+  border-radius:
+    12px
+    !important;
+
+  background:
+    rgba(
+      40,
+      19,
+      49,
+      0.95
+    )
+    !important;
+
+  box-shadow:
+    0 8px 25px
+    rgba(
+      0,
+      0,
+      0,
+      0.28
+    );
+}
+
+
+.game:has(.game-library)
+.editor-actions button {
+  flex:
+    0 0 auto
+    !important;
+
+  width:
+    auto
+    !important;
+
+  min-width:
+    132px;
+
+  min-height:
+    35px
+    !important;
+
+  padding:
+    6px 12px
+    !important;
+
+  font-size:
+    0.7rem
+    !important;
+}
+
+
+/*
+ * ================================================
+ * TABLET WIDTHS
+ * ================================================
+ */
+
+@media (
+  max-width:
+  1050px
+) {
+
+  .game:has(.game-library)
+  .editor-clues {
+    grid-template-columns:
+      repeat(
+        3,
+        minmax(
+          0,
+          1fr
+        )
+      )
+      !important;
+  }
+}
+
+
+@media (
+  max-width:
+  760px
+) {
+
+  .game:has(.game-library)::before {
+    width:
+      min(
+        360px,
+        72vw
+      )
+      !important;
+  }
+
+
+  .game:has(.game-library)
+  .editor-clues {
+    grid-template-columns:
+      1fr
+      !important;
+  }
+
+
+  .game:has(.game-library)
+  .editor-actions {
+    left:
+      12px
+      !important;
+
+    right:
+      12px
+      !important;
+
+    width:
+      auto
+      !important;
+  }
+
+
+  .game:has(.game-library)
+  .editor-actions button {
+    flex:
+      1 1 0
+      !important;
+
+    min-width:
+      0;
+  }
+}
+
+
+/* ===== BUZZBOARD HOST WORKSPACE V2 END ===== */
