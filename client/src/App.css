@@ -11747,3 +11747,157 @@ button {
 
 
 /* ===== BUZZBOARD STABLE SESSION V3 END ===== */
+
+/* ===== BUZZBOARD STABLE BOARD TILES V4 START ===== */
+
+
+/*
+ * --------------------------------
+ * DESKTOP / DISCORD BOARD
+ *
+ * Category geometry no longer
+ * changes when Restart / Exit
+ * confirmation is opened.
+ * --------------------------------
+ */
+
+@media (
+  min-width:
+  701px
+) {
+
+  .game:has(.board)
+  .board
+  .category {
+    display:
+      grid
+      !important;
+
+    grid-template-rows:
+      42px
+      repeat(
+        5,
+        23px
+      )
+      !important;
+
+    gap:
+      4px
+      !important;
+
+    align-content:
+      start
+      !important;
+
+    min-height:
+      0
+      !important;
+  }
+
+
+  /*
+   * Category header
+   */
+
+  .game:has(.board)
+  .board
+  .category > h2 {
+    height:
+      42px
+      !important;
+
+    min-height:
+      42px
+      !important;
+
+    max-height:
+      42px
+      !important;
+
+    margin:
+      0
+      !important;
+
+    padding:
+      5px 6px
+      !important;
+
+    box-sizing:
+      border-box;
+
+    display:
+      flex
+      !important;
+
+    align-items:
+      center
+      !important;
+
+    justify-content:
+      center
+      !important;
+
+    line-height:
+      1.1
+      !important;
+
+    overflow:
+      hidden;
+  }
+
+
+  /*
+   * Every clue gets the SAME
+   * height whether confirmation
+   * is open or closed.
+   */
+
+  .game:has(.board)
+  .board
+  .category > .clue {
+    height:
+      23px
+      !important;
+
+    min-height:
+      23px
+      !important;
+
+    max-height:
+      23px
+      !important;
+
+    margin:
+      0
+      !important;
+
+    padding:
+      0 6px
+      !important;
+
+    box-sizing:
+      border-box;
+
+    display:
+      flex
+      !important;
+
+    align-items:
+      center
+      !important;
+
+    justify-content:
+      center
+      !important;
+
+    line-height:
+      1
+      !important;
+
+    overflow:
+      hidden;
+  }
+}
+
+
+/* ===== BUZZBOARD STABLE BOARD TILES V4 END ===== */
