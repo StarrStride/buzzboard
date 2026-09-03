@@ -10914,3 +10914,50 @@ button {
 
 
 /* ===== BUZZBOARD BRAND POLISH V1 END ===== */
+
+/* ===== BUZZBOARD CONTROL FONT CLEANUP START ===== */
+
+
+/*
+ * Game-show content keeps Fugaz One.
+ * Host controls use a clean UI font.
+ */
+
+.host-tools-panel button,
+.host-utility-buttons button,
+.host-session-buttons button,
+.host-session-confirm-buttons button {
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif
+    !important;
+
+  font-style:
+    normal
+    !important;
+
+  font-weight:
+    700
+    !important;
+
+  letter-spacing:
+    0
+    !important;
+}
+
+
+/*
+ * Keep the Game Session label branded.
+ */
+
+.host-session-controls::before {
+  font-family:
+    var(--buzz-display)
+    !important;
+}
+
+
+/* ===== BUZZBOARD CONTROL FONT CLEANUP END ===== */
