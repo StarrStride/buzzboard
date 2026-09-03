@@ -13947,3 +13947,406 @@ button {
 
 
 /* ===== BUZZBOARD EMPTY MEDIA LABEL FIX END ===== */
+
+/* ===== BUZZBOARD FINAL EDITOR V4 START ===== */
+
+
+/*
+ * ================================================
+ * FINAL ROUND EDITOR
+ *
+ * Desktop:
+ *
+ * [ Final Category ][ Final Clue ][ Final Answer ]
+ *
+ * Instead of three giant vertically stacked fields.
+ * ================================================
+ */
+
+.game:has(.game-library)
+.final-editor {
+  display:
+    grid
+    !important;
+
+  grid-template-columns:
+    minmax(
+      190px,
+      0.72fr
+    )
+    minmax(
+      0,
+      1.2fr
+    )
+    minmax(
+      0,
+      1.2fr
+    )
+    !important;
+
+  grid-template-areas:
+    "final-heading final-heading final-heading"
+    "final-category final-clue final-answer";
+
+  align-items:
+    start;
+
+  gap:
+    10px 12px
+    !important;
+
+  margin-top:
+    16px
+    !important;
+
+  padding:
+    13px 14px
+    !important;
+
+  border-radius:
+    13px
+    !important;
+}
+
+
+/*
+ * --------------------------------
+ * HEADER
+ * --------------------------------
+ */
+
+.game:has(.game-library)
+.final-editor-heading {
+  grid-area:
+    final-heading;
+
+  margin:
+    0
+    !important;
+
+  padding:
+    0 0 9px
+    !important;
+
+  border-bottom:
+    1px solid
+    rgba(
+      241,
+      212,
+      110,
+      0.18
+    );
+
+  display:
+    flex
+    !important;
+
+  align-items:
+    baseline;
+
+  gap:
+    8px 11px;
+
+  min-width:
+    0;
+}
+
+
+.game:has(.game-library)
+.final-editor-heading > span {
+  flex:
+    0 0 auto;
+
+  margin:
+    0
+    !important;
+
+  font-size:
+    0.62rem
+    !important;
+
+  letter-spacing:
+    0.12em
+    !important;
+
+  white-space:
+    nowrap;
+}
+
+
+.game:has(.game-library)
+.final-editor-heading h2 {
+  flex:
+    0 0 auto;
+
+  margin:
+    0
+    !important;
+
+  font-size:
+    1.18rem
+    !important;
+
+  white-space:
+    nowrap;
+}
+
+
+.game:has(.game-library)
+.final-editor-heading p {
+  flex:
+    1 1 auto;
+
+  min-width:
+    0;
+
+  max-width:
+    none
+    !important;
+
+  margin:
+    0 0 0 3px
+    !important;
+
+  font-size:
+    0.66rem
+    !important;
+
+  line-height:
+    1.2
+    !important;
+
+  opacity:
+    0.82;
+}
+
+
+/*
+ * --------------------------------
+ * THREE FIELD COLUMNS
+ * --------------------------------
+ */
+
+.game:has(.game-library)
+.final-editor > label {
+  min-width:
+    0;
+
+  margin:
+    0
+    !important;
+
+  display:
+    grid
+    !important;
+
+  gap:
+    4px
+    !important;
+
+  align-content:
+    start;
+}
+
+
+.game:has(.game-library)
+.final-editor > label:nth-of-type(1) {
+  grid-area:
+    final-category;
+}
+
+
+.game:has(.game-library)
+.final-editor > label:nth-of-type(2) {
+  grid-area:
+    final-clue;
+}
+
+
+.game:has(.game-library)
+.final-editor > label:nth-of-type(3) {
+  grid-area:
+    final-answer;
+}
+
+
+.game:has(.game-library)
+.final-editor > label > span {
+  margin:
+    0
+    !important;
+
+  font-size:
+    0.67rem
+    !important;
+
+  line-height:
+    1.1;
+}
+
+
+/*
+ * Final Category
+ */
+
+.game:has(.game-library)
+.final-editor > label:nth-of-type(1) input {
+  width:
+    100%
+    !important;
+
+  max-width:
+    none
+    !important;
+
+  min-height:
+    37px
+    !important;
+
+  padding:
+    6px 9px
+    !important;
+
+  font-size:
+    0.78rem
+    !important;
+}
+
+
+/*
+ * Final Clue + Answer
+ */
+
+.game:has(.game-library)
+.final-editor > label:nth-of-type(2) textarea,
+.game:has(.game-library)
+.final-editor > label:nth-of-type(3) textarea {
+  width:
+    100%
+    !important;
+
+  min-height:
+    84px
+    !important;
+
+  height:
+    84px;
+
+  padding:
+    7px 9px
+    !important;
+
+  font-size:
+    0.74rem
+    !important;
+
+  line-height:
+    1.25
+    !important;
+
+  resize:
+    vertical;
+}
+
+
+/*
+ * ================================================
+ * MEDIUM WIDTH
+ *
+ * Category gets its own short row.
+ * Clue + Answer remain side-by-side.
+ * ================================================
+ */
+
+@media (
+  max-width:
+  900px
+) {
+
+  .game:has(.game-library)
+  .final-editor {
+    grid-template-columns:
+      minmax(
+        0,
+        1fr
+      )
+      minmax(
+        0,
+        1fr
+      )
+      !important;
+
+    grid-template-areas:
+      "final-heading final-heading"
+      "final-category final-category"
+      "final-clue final-answer";
+  }
+
+
+  .game:has(.game-library)
+  .final-editor-heading {
+    flex-wrap:
+      wrap;
+  }
+
+
+  .game:has(.game-library)
+  .final-editor-heading p {
+    flex:
+      1 0 100%;
+
+    margin-left:
+      0
+      !important;
+  }
+}
+
+
+/*
+ * ================================================
+ * SMALL WIDTH
+ *
+ * Stack cleanly for narrow Discord windows.
+ * ================================================
+ */
+
+@media (
+  max-width:
+  620px
+) {
+
+  .game:has(.game-library)
+  .final-editor {
+    grid-template-columns:
+      1fr
+      !important;
+
+    grid-template-areas:
+      "final-heading"
+      "final-category"
+      "final-clue"
+      "final-answer";
+  }
+
+
+  .game:has(.game-library)
+  .final-editor-heading {
+    display:
+      grid
+      !important;
+
+    grid-template-columns:
+      auto
+      1fr;
+  }
+
+
+  .game:has(.game-library)
+  .final-editor-heading p {
+    grid-column:
+      1 / -1;
+  }
+}
+
+
+/* ===== BUZZBOARD FINAL EDITOR V4 END ===== */
