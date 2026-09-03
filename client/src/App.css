@@ -14350,3 +14350,644 @@ button {
 
 
 /* ===== BUZZBOARD FINAL EDITOR V4 END ===== */
+
+/* ===== BUZZBOARD FINAL GAMEPLAY COMPACT V1 START ===== */
+
+
+/*
+ * ================================================
+ * FINAL GAMEPLAY PAGE HEADER
+ *
+ * Don't waste half a viewport before the card.
+ * ================================================
+ */
+
+.game:has(.final-round-screen),
+.game:has(.final-results) {
+  padding-top:
+    18px
+    !important;
+}
+
+
+.game:has(.final-round-screen)::before,
+.game:has(.final-results)::before {
+  width:
+    min(
+      350px,
+      42vw
+    )
+    !important;
+
+  max-width:
+    350px
+    !important;
+
+  margin-bottom:
+    2px
+    !important;
+}
+
+
+/*
+ * The giant outside-page title is redundant because
+ * every Final card already labels itself.
+ */
+
+.game:has(.final-round-screen) > h1,
+.game:has(.final-results) > h1 {
+  font-size:
+    1.35rem
+    !important;
+
+  margin:
+    2px 0
+    !important;
+}
+
+
+.game:has(.final-round-screen) > p,
+.game:has(.final-results) > p {
+  margin:
+    2px 0 8px
+    !important;
+
+  font-size:
+    0.75rem
+    !important;
+
+  opacity:
+    0.78;
+}
+
+
+/*
+ * ================================================
+ * SCOREBOARD
+ * ================================================
+ */
+
+.game:has(.final-round-screen)
+.scoreboard,
+.game:has(.final-results)
+.scoreboard {
+  margin:
+    5px auto 8px
+    !important;
+}
+
+
+/*
+ * ================================================
+ * FINAL ROUND CARDS
+ * ================================================
+ */
+
+.game .final-round-screen {
+  width:
+    min(
+      820px,
+      92%
+    )
+    !important;
+
+  margin:
+    8px auto
+    !important;
+
+  padding:
+    22px 26px
+    !important;
+
+  border-radius:
+    16px
+    !important;
+}
+
+
+.final-round-label {
+  margin-bottom:
+    5px
+    !important;
+
+  font-size:
+    0.68rem
+    !important;
+
+  letter-spacing:
+    0.14em
+    !important;
+}
+
+
+.final-round-screen > h2 {
+  margin:
+    4px 0 12px
+    !important;
+
+  font-size:
+    clamp(
+      1.7rem,
+      4vw,
+      2.45rem
+    )
+    !important;
+
+  line-height:
+    1.05;
+}
+
+
+.final-round-screen > p {
+  margin:
+    4px 0
+    !important;
+
+  font-size:
+    0.78rem
+    !important;
+
+  line-height:
+    1.25;
+}
+
+
+/*
+ * ================================================
+ * FINAL WAGER INPUT
+ * ================================================
+ */
+
+.final-input-area {
+  width:
+    min(
+      520px,
+      100%
+    )
+    !important;
+
+  margin:
+    15px auto
+    !important;
+
+  gap:
+    7px
+    !important;
+}
+
+
+.final-input-area input {
+  min-height:
+    45px
+    !important;
+
+  padding:
+    7px 10px
+    !important;
+}
+
+
+.final-input-area button {
+  min-height:
+    40px
+    !important;
+
+  padding:
+    6px 12px
+    !important;
+}
+
+
+/*
+ * Locked wager / answer card.
+ */
+
+.final-locked-card {
+  margin:
+    14px auto
+    !important;
+
+  padding:
+    12px 16px
+    !important;
+
+  min-height:
+    0
+    !important;
+}
+
+
+.final-locked-card span {
+  font-size:
+    0.68rem
+    !important;
+}
+
+
+.final-locked-card strong {
+  font-size:
+    1.55rem
+    !important;
+}
+
+
+/*
+ * Player status rows.
+ */
+
+.final-player-status,
+.final-status-row {
+  min-height:
+    42px
+    !important;
+
+  padding:
+    7px 11px
+    !important;
+
+  margin:
+    5px 0
+    !important;
+}
+
+
+/*
+ * ================================================
+ * FINAL QUESTION
+ * ================================================
+ */
+
+.final-question {
+  margin:
+    6px auto 14px
+    !important;
+
+  font-size:
+    clamp(
+      1.55rem,
+      4vw,
+      2.35rem
+    )
+    !important;
+
+  line-height:
+    1.08
+    !important;
+}
+
+
+/*
+ * ================================================
+ * FINAL BUTTONS
+ * ================================================
+ */
+
+.final-round-screen button {
+  min-height:
+    38px
+    !important;
+
+  padding:
+    6px 14px
+    !important;
+}
+
+
+/*
+ * ================================================
+ * HOST TOOLS DURING FINAL
+ *
+ * Stop reverting to the enormous legacy panel.
+ * ================================================
+ */
+
+.game:has(.final-round-screen)
+.host-tools-panel,
+.game:has(.final-results)
+.host-tools-panel {
+  width:
+    min(
+      900px,
+      92%
+    )
+    !important;
+
+  margin:
+    8px auto
+    !important;
+
+  padding:
+    8px 10px
+    !important;
+
+  border-radius:
+    12px
+    !important;
+}
+
+
+.game:has(.final-round-screen)
+.host-tools-header,
+.game:has(.final-results)
+.host-tools-header {
+  margin:
+    0 0 6px
+    !important;
+
+  min-height:
+    0
+    !important;
+}
+
+
+.game:has(.final-round-screen)
+.host-tools-header h2,
+.game:has(.final-results)
+.host-tools-header h2 {
+  font-size:
+    0.95rem
+    !important;
+
+  margin:
+    0
+    !important;
+}
+
+
+/*
+ * Score fields on one compact row.
+ */
+
+.game:has(.final-round-screen)
+.host-score-fields,
+.game:has(.final-results)
+.host-score-fields {
+  display:
+    grid
+    !important;
+
+  grid-template-columns:
+    minmax(
+      0,
+      1fr
+    )
+    150px;
+
+  gap:
+    6px
+    !important;
+
+  margin:
+    0 0 6px
+    !important;
+}
+
+
+.game:has(.final-round-screen)
+.host-score-fields label,
+.game:has(.final-results)
+.host-score-fields label {
+  margin:
+    0
+    !important;
+
+  gap:
+    3px
+    !important;
+}
+
+
+.game:has(.final-round-screen)
+.host-score-fields label > span,
+.game:has(.final-results)
+.host-score-fields label > span {
+  display:
+    none;
+}
+
+
+.game:has(.final-round-screen)
+.host-score-fields select,
+.game:has(.final-round-screen)
+.host-score-fields input,
+.game:has(.final-results)
+.host-score-fields select,
+.game:has(.final-results)
+.host-score-fields input {
+  min-height:
+    34px
+    !important;
+
+  padding:
+    5px 8px
+    !important;
+}
+
+
+/*
+ * Add/Subtract side-by-side but short.
+ */
+
+.game:has(.final-round-screen)
+.host-score-buttons,
+.game:has(.final-results)
+.host-score-buttons {
+  display:
+    grid
+    !important;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(
+        0,
+        1fr
+      )
+    );
+
+  gap:
+    6px
+    !important;
+
+  margin:
+    0 0 6px
+    !important;
+}
+
+
+.game:has(.final-round-screen)
+.host-score-buttons button,
+.game:has(.final-results)
+.host-score-buttons button {
+  min-height:
+    34px
+    !important;
+
+  padding:
+    5px 10px
+    !important;
+}
+
+
+/*
+ * Buzzer / End / Undo compact.
+ */
+
+.game:has(.final-round-screen)
+.host-utility-buttons,
+.game:has(.final-results)
+.host-utility-buttons {
+  display:
+    grid
+    !important;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(
+        0,
+        1fr
+      )
+    );
+
+  gap:
+    6px
+    !important;
+
+  margin:
+    0
+    !important;
+}
+
+
+.game:has(.final-round-screen)
+.host-utility-buttons button,
+.game:has(.final-results)
+.host-utility-buttons button {
+  min-height:
+    32px
+    !important;
+
+  padding:
+    4px 8px
+    !important;
+
+  font-size:
+    0.67rem
+    !important;
+}
+
+
+/*
+ * Session controls stay tiny.
+ */
+
+.game:has(.final-round-screen)
+.host-session-controls,
+.game:has(.final-results)
+.host-session-controls {
+  margin-top:
+    6px
+    !important;
+
+  padding-top:
+    5px
+    !important;
+}
+
+
+/*
+ * ================================================
+ * FINAL RESULTS
+ *
+ * This screen is already the nicest one.
+ * Just tighten the shell slightly.
+ * ================================================
+ */
+
+.game .final-results {
+  width:
+    min(
+      780px,
+      92%
+    )
+    !important;
+
+  margin:
+    8px auto
+    !important;
+
+  padding:
+    22px
+    !important;
+
+  border-radius:
+    16px
+    !important;
+}
+
+
+.final-heading h2 {
+  margin:
+    3px 0 14px
+    !important;
+
+  font-size:
+    2rem
+    !important;
+}
+
+
+.winner-banner {
+  padding:
+    18px
+    !important;
+
+  margin:
+    10px 0
+    !important;
+}
+
+
+.winner-banner strong {
+  font-size:
+    clamp(
+      2rem,
+      6vw,
+      3rem
+    )
+    !important;
+}
+
+
+/*
+ * ================================================
+ * NARROW WINDOWS
+ * ================================================
+ */
+
+@media (
+  max-width:
+  700px
+) {
+
+  .game:has(.final-round-screen)
+  .host-score-fields,
+  .game:has(.final-results)
+  .host-score-fields {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .game:has(.final-round-screen)
+  .host-utility-buttons,
+  .game:has(.final-results)
+  .host-utility-buttons {
+    grid-template-columns:
+      1fr;
+  }
+}
+
+
+/* ===== BUZZBOARD FINAL GAMEPLAY COMPACT V1 END ===== */
