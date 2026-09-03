@@ -15539,3 +15539,599 @@ button {
 
 
 /* ===== BUZZBOARD ROUND TRANSITION COMPACT V1 END ===== */
+
+/* ===== BUZZBOARD FINAL HOST STRUCTURE V2 START ===== */
+
+
+/*
+ * ================================================
+ * FINAL PAGE ORDER
+ *
+ * Current Final action comes BEFORE Host Tools.
+ * No JSX changes required.
+ * ================================================
+ */
+
+.game:has(.final-round-screen),
+.game:has(.final-results) {
+  display:
+    flex
+    !important;
+
+  flex-direction:
+    column
+    !important;
+
+  align-items:
+    center;
+}
+
+
+/*
+ * Normal direct children keep their existing DOM
+ * order at 0.
+ *
+ * Final content gets 1.
+ * Host Tools gets 2.
+ */
+
+.game:has(.final-round-screen)
+> .final-round-screen,
+.game:has(.final-results)
+> .final-results {
+  order:
+    1;
+}
+
+
+.game:has(.final-round-screen)
+> .host-tools-panel,
+.game:has(.final-results)
+> .host-tools-panel {
+  order:
+    2;
+}
+
+
+/*
+ * ================================================
+ * REDUNDANT FINAL PAGE TITLE
+ *
+ * The card already says FINAL ROUND / FINAL CLUE.
+ * Keep only the category beneath the logo.
+ * ================================================
+ */
+
+.game:has(.final-round-screen)
+> h1 {
+  display:
+    none
+    !important;
+}
+
+
+.game:has(.final-round-screen)
+> p {
+  margin:
+    2px 0 5px
+    !important;
+
+  padding:
+    3px 9px;
+
+  border-radius:
+    999px;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.035
+    );
+
+  font-size:
+    0.69rem
+    !important;
+
+  line-height:
+    1.1;
+}
+
+
+/*
+ * Results already communicate Game Complete.
+ */
+
+.game:has(.final-results)
+> h1 {
+  display:
+    none
+    !important;
+}
+
+
+.game:has(.final-results)
+> p {
+  margin:
+    3px 0 5px
+    !important;
+
+  font-size:
+    0.69rem
+    !important;
+}
+
+
+/*
+ * ================================================
+ * FINAL LOGO
+ * ================================================
+ */
+
+.game:has(.final-round-screen)::before,
+.game:has(.final-results)::before {
+  width:
+    min(
+      300px,
+      36vw
+    )
+    !important;
+
+  max-width:
+    300px
+    !important;
+
+  margin-bottom:
+    2px
+    !important;
+}
+
+
+/*
+ * ================================================
+ * FINAL INTERACTION CARD
+ * ================================================
+ */
+
+.game:has(.final-round-screen)
+.final-round-screen {
+  width:
+    min(
+      820px,
+      92%
+    )
+    !important;
+
+  margin:
+    7px auto
+    !important;
+
+  padding:
+    18px 22px
+    !important;
+}
+
+
+/*
+ * ================================================
+ * REAL HOST TOOLS COMPACTION
+ *
+ * These are the actual live class names.
+ * ================================================
+ */
+
+.game:has(.final-round-screen)
+.host-tools-panel,
+.game:has(.final-results)
+.host-tools-panel {
+  width:
+    min(
+      820px,
+      92%
+    )
+    !important;
+
+  margin:
+    7px auto
+    !important;
+
+  padding:
+    9px 11px
+    !important;
+
+  border-radius:
+    12px
+    !important;
+
+  text-align:
+    left;
+}
+
+
+/*
+ * Header becomes one small line.
+ */
+
+.game:has(.final-round-screen)
+.host-tools-heading,
+.game:has(.final-results)
+.host-tools-heading {
+  margin-bottom:
+    6px
+    !important;
+
+  gap:
+    8px
+    !important;
+
+  align-items:
+    center
+    !important;
+}
+
+
+.game:has(.final-round-screen)
+.host-tools-heading > div,
+.game:has(.final-results)
+.host-tools-heading > div {
+  display:
+    flex;
+
+  align-items:
+    baseline;
+
+  gap:
+    7px;
+}
+
+
+.game:has(.final-round-screen)
+.host-tools-heading > div > span,
+.game:has(.final-results)
+.host-tools-heading > div > span {
+  font-size:
+    0.55rem
+    !important;
+
+  letter-spacing:
+    0.10em
+    !important;
+}
+
+
+.game:has(.final-round-screen)
+.host-tools-heading h2,
+.game:has(.final-results)
+.host-tools-heading h2 {
+  margin:
+    0
+    !important;
+
+  font-size:
+    0.84rem
+    !important;
+}
+
+
+.game:has(.final-round-screen)
+.host-tools-heading small,
+.game:has(.final-results)
+.host-tools-heading small {
+  padding:
+    3px 7px
+    !important;
+
+  font-size:
+    0.58rem
+    !important;
+}
+
+
+/*
+ * ================================================
+ * PLAYER + AMOUNT
+ * ================================================
+ */
+
+.game:has(.final-round-screen)
+.host-score-tools,
+.game:has(.final-results)
+.host-score-tools {
+  grid-template-columns:
+    minmax(
+      0,
+      1fr
+    )
+    130px
+    !important;
+
+  gap:
+    6px
+    !important;
+}
+
+
+.game:has(.final-round-screen)
+.host-score-tools label,
+.game:has(.final-results)
+.host-score-tools label {
+  gap:
+    2px
+    !important;
+}
+
+
+/*
+ * We don't need Player / Amount labels in this
+ * compact utility dock.
+ */
+
+.game:has(.final-round-screen)
+.host-score-tools label > span,
+.game:has(.final-results)
+.host-score-tools label > span {
+  display:
+    none
+    !important;
+}
+
+
+.game:has(.final-round-screen)
+.host-score-tools select,
+.game:has(.final-round-screen)
+.host-score-tools input,
+.game:has(.final-results)
+.host-score-tools select,
+.game:has(.final-results)
+.host-score-tools input {
+  min-height:
+    32px
+    !important;
+
+  padding:
+    4px 7px
+    !important;
+
+  border-radius:
+    7px
+    !important;
+
+  font-size:
+    0.69rem
+    !important;
+}
+
+
+/*
+ * ================================================
+ * ADD / SUBTRACT
+ * ================================================
+ */
+
+.game:has(.final-round-screen)
+.host-score-buttons,
+.game:has(.final-results)
+.host-score-buttons {
+  gap:
+    6px
+    !important;
+
+  margin-top:
+    6px
+    !important;
+}
+
+
+.game:has(.final-round-screen)
+.host-score-buttons button,
+.game:has(.final-results)
+.host-score-buttons button {
+  min-height:
+    31px
+    !important;
+
+  padding:
+    4px 8px
+    !important;
+
+  font-size:
+    0.68rem
+    !important;
+}
+
+
+/*
+ * ================================================
+ * FINAL DOES NOT USE NORMAL BUZZER FLOW
+ *
+ * Utility buttons are:
+ * 1 = Buzzers
+ * 2 = End Clue
+ * 3 = Undo
+ *
+ * Hide the first two during Final.
+ * ================================================
+ */
+
+.game:has(.final-round-screen)
+.host-utility-buttons
+button:nth-child(1),
+
+.game:has(.final-round-screen)
+.host-utility-buttons
+button:nth-child(2),
+
+.game:has(.final-results)
+.host-utility-buttons
+button:nth-child(1),
+
+.game:has(.final-results)
+.host-utility-buttons
+button:nth-child(2) {
+  display:
+    none
+    !important;
+}
+
+
+.game:has(.final-round-screen)
+.host-utility-buttons,
+.game:has(.final-results)
+.host-utility-buttons {
+  grid-template-columns:
+    1fr
+    !important;
+
+  gap:
+    0
+    !important;
+
+  margin-top:
+    6px
+    !important;
+
+  padding-top:
+    6px
+    !important;
+}
+
+
+.game:has(.final-round-screen)
+.host-utility-buttons button,
+.game:has(.final-results)
+.host-utility-buttons button {
+  min-height:
+    30px
+    !important;
+
+  padding:
+    4px 8px
+    !important;
+
+  font-size:
+    0.66rem
+    !important;
+}
+
+
+/*
+ * ================================================
+ * RESTART / EXIT
+ * ================================================
+ */
+
+.game:has(.final-round-screen)
+.host-session-controls,
+.game:has(.final-results)
+.host-session-controls {
+  margin-top:
+    5px
+    !important;
+
+  padding-top:
+    5px
+    !important;
+}
+
+
+.game:has(.final-round-screen)
+.host-session-buttons button,
+.game:has(.final-results)
+.host-session-buttons button {
+  min-height:
+    29px
+    !important;
+
+  min-width:
+    110px
+    !important;
+
+  padding:
+    4px 8px
+    !important;
+
+  font-size:
+    0.63rem
+    !important;
+}
+
+
+/*
+ * Undo status should not create a giant footer.
+ */
+
+.game:has(.final-round-screen)
+.host-tools-panel p:last-child,
+.game:has(.final-results)
+.host-tools-panel p:last-child {
+  margin:
+    4px 0 0
+    !important;
+
+  font-size:
+    0.59rem
+    !important;
+
+  line-height:
+    1.1;
+}
+
+
+/*
+ * ================================================
+ * FINAL RESULTS
+ * ================================================
+ */
+
+.game:has(.final-results)
+.final-results {
+  order:
+    1;
+
+  margin:
+    7px auto
+    !important;
+}
+
+
+.game:has(.final-results)
+.host-tools-panel {
+  order:
+    2;
+}
+
+
+/*
+ * ================================================
+ * NARROW WINDOWS
+ * ================================================
+ */
+
+@media (
+  max-width:
+  700px
+) {
+
+  .game:has(.final-round-screen)
+  .host-score-tools,
+  .game:has(.final-results)
+  .host-score-tools {
+    grid-template-columns:
+      1fr
+      !important;
+  }
+
+
+  .game:has(.final-round-screen)
+  .host-session-buttons,
+  .game:has(.final-results)
+  .host-session-buttons {
+    width:
+      100%
+      !important;
+  }
+}
+
+
+/* ===== BUZZBOARD FINAL HOST STRUCTURE V2 END ===== */
