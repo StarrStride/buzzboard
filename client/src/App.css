@@ -11901,3 +11901,575 @@ button {
 
 
 /* ===== BUZZBOARD STABLE BOARD TILES V4 END ===== */
+
+/* ===== BUZZBOARD COMPACT HOST MENU V1 START ===== */
+
+
+/*
+ * ================================================
+ * HOST LOBBY / LIBRARY
+ *
+ * Only applies to the host menu because the
+ * game-library section only exists for hosts.
+ * ================================================
+ */
+
+.game:has(.game-library) {
+  gap:
+    0
+    !important;
+}
+
+
+/*
+ * Pull the menu sections together.
+ */
+
+.game:has(.game-library) > p {
+  margin:
+    4px auto 8px
+    !important;
+
+  line-height:
+    1.1;
+}
+
+
+/*
+ * -----------------------------
+ * LOBBY
+ * -----------------------------
+ */
+
+.game:has(.game-library)
+.lobby-panel {
+  width:
+    min(
+      760px,
+      92%
+    )
+    !important;
+
+  max-width:
+    760px
+    !important;
+
+  margin:
+    14px auto
+    !important;
+
+  padding:
+    16px 20px
+    !important;
+
+  border-radius:
+    16px
+    !important;
+}
+
+
+.game:has(.game-library)
+.lobby-panel > h2 {
+  margin:
+    0 0 2px
+    !important;
+
+  font-size:
+    1.35rem
+    !important;
+}
+
+
+.game:has(.game-library)
+.lobby-panel > p {
+  margin:
+    2px 0 10px
+    !important;
+
+  line-height:
+    1.2;
+}
+
+
+/*
+ * Players section.
+ */
+
+.game:has(.game-library)
+.players {
+  margin:
+    10px 0
+    !important;
+}
+
+
+.game:has(.game-library)
+.players h3 {
+  margin:
+    0 0 7px
+    !important;
+
+  font-size:
+    1rem
+    !important;
+}
+
+
+.game:has(.game-library)
+.players ul {
+  display:
+    grid;
+
+  gap:
+    5px;
+}
+
+
+.game:has(.game-library)
+.players li {
+  margin:
+    0
+    !important;
+
+  padding:
+    7px 11px
+    !important;
+
+  border-radius:
+    9px
+    !important;
+}
+
+
+/*
+ * Host participation card.
+ */
+
+.game:has(.game-library)
+.host-participation {
+  margin:
+    9px 0 0
+    !important;
+
+  padding:
+    11px 13px
+    !important;
+
+  border-radius:
+    11px
+    !important;
+}
+
+
+.game:has(.game-library)
+.host-participation h3,
+.game:has(.game-library)
+.host-participation h4,
+.game:has(.game-library)
+.host-participation p {
+  margin-top:
+    2px
+    !important;
+
+  margin-bottom:
+    3px
+    !important;
+}
+
+
+/*
+ * ================================================
+ * YOUR GAMES
+ * ================================================
+ */
+
+.game:has(.game-library)
+.game-library {
+  width:
+    min(
+      1080px,
+      94%
+    )
+    !important;
+
+  max-width:
+    1080px
+    !important;
+
+  margin:
+    14px auto
+    !important;
+
+  padding:
+    17px 20px
+    !important;
+
+  border-radius:
+    16px
+    !important;
+}
+
+
+/*
+ * Header becomes one clean compact row.
+ */
+
+.game:has(.game-library)
+.library-heading {
+  margin:
+    0 0 11px
+    !important;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  gap:
+    12px;
+}
+
+
+.game:has(.game-library)
+.library-heading h2 {
+  margin:
+    0
+    !important;
+
+  font-size:
+    1.45rem
+    !important;
+}
+
+
+.game:has(.game-library)
+.library-heading p {
+  margin:
+    2px 0 0
+    !important;
+
+  font-size:
+    0.82rem;
+
+  line-height:
+    1.2;
+}
+
+
+.game:has(.game-library)
+.library-heading button {
+  flex:
+    0 0 auto;
+
+  min-height:
+    35px
+    !important;
+
+  padding:
+    6px 13px
+    !important;
+
+  border-radius:
+    9px
+    !important;
+
+  font-size:
+    0.72rem
+    !important;
+}
+
+
+/*
+ * Multiple saves can sit side-by-side.
+ */
+
+.game:has(.game-library)
+.library-grid {
+  display:
+    grid
+    !important;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(
+        0,
+        1fr
+      )
+    )
+    !important;
+
+  gap:
+    10px
+    !important;
+}
+
+
+/*
+ * Saved-game card.
+ */
+
+.game:has(.game-library)
+.library-card {
+  min-width:
+    0;
+
+  margin:
+    0
+    !important;
+
+  padding:
+    12px 14px
+    !important;
+
+  border-radius:
+    11px
+    !important;
+
+  display:
+    grid
+    !important;
+
+  grid-template-columns:
+    minmax(
+      0,
+      1fr
+    )
+    auto;
+
+  grid-template-areas:
+    "details actions";
+
+  align-items:
+    center;
+
+  column-gap:
+    12px;
+}
+
+
+.game:has(.game-library)
+.library-card > div:first-child {
+  grid-area:
+    details;
+
+  min-width:
+    0;
+}
+
+
+.game:has(.game-library)
+.library-card h3 {
+  margin:
+    0 0 2px
+    !important;
+
+  font-size:
+    1rem
+    !important;
+}
+
+
+.game:has(.game-library)
+.library-card p {
+  margin:
+    0 0 2px
+    !important;
+
+  font-size:
+    0.72rem;
+
+  line-height:
+    1.2;
+}
+
+
+.game:has(.game-library)
+.library-card small {
+  display:
+    block;
+
+  font-size:
+    0.65rem;
+
+  line-height:
+    1.15;
+
+  opacity:
+    0.72;
+}
+
+
+/*
+ * Load / Delete now live beside the metadata
+ * instead of consuming a whole giant row.
+ */
+
+.game:has(.game-library)
+.library-card-actions {
+  grid-area:
+    actions;
+
+  display:
+    flex
+    !important;
+
+  flex-direction:
+    column
+    !important;
+
+  gap:
+    5px
+    !important;
+}
+
+
+.game:has(.game-library)
+.library-card-actions button {
+  width:
+    88px
+    !important;
+
+  min-width:
+    88px;
+
+  min-height:
+    31px
+    !important;
+
+  padding:
+    4px 9px
+    !important;
+
+  border-radius:
+    8px
+    !important;
+
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif
+    !important;
+
+  font-size:
+    0.68rem
+    !important;
+
+  font-style:
+    normal
+    !important;
+
+  font-weight:
+    700
+    !important;
+}
+
+
+/*
+ * Empty library should also stay short.
+ */
+
+.game:has(.game-library)
+.empty-library {
+  padding:
+    14px
+    !important;
+
+  min-height:
+    0
+    !important;
+}
+
+
+/*
+ * ================================================
+ * GAME EDITOR ENTRY POINT
+ *
+ * We are NOT compressing all clue fields yet.
+ * Just remove the giant gap before the editor.
+ * ================================================
+ */
+
+.game:has(.game-library)
+.editor {
+  width:
+    min(
+      1160px,
+      95%
+    )
+    !important;
+
+  margin:
+    14px auto
+    !important;
+}
+
+
+.game:has(.game-library)
+.editor-heading {
+  margin-bottom:
+    12px
+    !important;
+}
+
+
+/*
+ * ================================================
+ * SMALLER WINDOWS
+ * ================================================
+ */
+
+@media (
+  max-width:
+  850px
+) {
+
+  .game:has(.game-library)
+  .library-grid {
+    grid-template-columns:
+      1fr
+      !important;
+  }
+
+
+  .game:has(.game-library)
+  .library-card {
+    grid-template-columns:
+      1fr;
+
+    grid-template-areas:
+      "details"
+      "actions";
+
+    row-gap:
+      8px;
+  }
+
+
+  .game:has(.game-library)
+  .library-card-actions {
+    flex-direction:
+      row
+      !important;
+  }
+
+
+  .game:has(.game-library)
+  .library-card-actions button {
+    flex:
+      1 1 0;
+
+    width:
+      auto
+      !important;
+  }
+}
+
+
+/* ===== BUZZBOARD COMPACT HOST MENU V1 END ===== */
