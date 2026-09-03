@@ -14991,3 +14991,551 @@ button {
 
 
 /* ===== BUZZBOARD FINAL GAMEPLAY COMPACT V1 END ===== */
+
+/* ===== BUZZBOARD ROUND TRANSITION COMPACT V1 START ===== */
+
+
+/*
+ * ================================================
+ * ROUND BREAK PAGE
+ *
+ * Goal:
+ * Round 1 Complete + scores + Round 2 controls
+ * all visible in one normal Discord viewport.
+ * ================================================
+ */
+
+.round-break-page {
+  min-height:
+    0
+    !important;
+
+  padding-top:
+    16px
+    !important;
+
+  padding-bottom:
+    24px
+    !important;
+
+  gap:
+    0
+    !important;
+
+  justify-content:
+    flex-start
+    !important;
+}
+
+
+/*
+ * --------------------------------
+ * SMALLER TRANSITION LOGO
+ * --------------------------------
+ */
+
+.round-break-page::before {
+  width:
+    min(
+      300px,
+      38vw
+    )
+    !important;
+
+  max-width:
+    300px
+    !important;
+
+  margin:
+    0 auto 4px
+    !important;
+}
+
+
+/*
+ * --------------------------------
+ * ROUND 1 COMPLETE HEADING
+ * --------------------------------
+ */
+
+.round-break-page > h1 {
+  margin:
+    4px 0
+    !important;
+
+  font-size:
+    clamp(
+      2rem,
+      5vw,
+      3.1rem
+    )
+    !important;
+
+  line-height:
+    1
+    !important;
+}
+
+
+.round-break-page > p {
+  margin:
+    4px 0 9px
+    !important;
+
+  font-size:
+    0.82rem
+    !important;
+
+  line-height:
+    1.2;
+}
+
+
+/*
+ * ================================================
+ * SCOREBOARD
+ *
+ * Compact enough for several players without
+ * creating another giant vertical section.
+ * ================================================
+ */
+
+.round-break-page .scoreboard {
+  width:
+    min(
+      920px,
+      92%
+    )
+    !important;
+
+  margin:
+    3px auto 10px
+    !important;
+
+  display:
+    flex
+    !important;
+
+  flex-wrap:
+    wrap;
+
+  align-items:
+    stretch;
+
+  justify-content:
+    center;
+
+  gap:
+    6px
+    !important;
+}
+
+
+.round-break-page .score-card {
+  flex:
+    1 1 130px;
+
+  width:
+    auto
+    !important;
+
+  min-width:
+    120px
+    !important;
+
+  max-width:
+    170px
+    !important;
+
+  min-height:
+    0
+    !important;
+
+  margin:
+    0
+    !important;
+
+  padding:
+    7px 9px
+    !important;
+
+  border-radius:
+    10px
+    !important;
+}
+
+
+.round-break-page .score-card strong {
+  font-size:
+    1.15rem
+    !important;
+
+  line-height:
+    1
+    !important;
+}
+
+
+.round-break-page .score-name {
+  font-size:
+    0.67rem
+    !important;
+
+  line-height:
+    1.1
+    !important;
+}
+
+
+/*
+ * ================================================
+ * ROUND 2 READY CARD
+ * ================================================
+ */
+
+.round-break-screen {
+  width:
+    min(
+      780px,
+      92%
+    )
+    !important;
+
+  max-width:
+    780px
+    !important;
+
+  margin:
+    2px auto 0
+    !important;
+
+  padding:
+    15px 20px
+    !important;
+
+  border-radius:
+    15px
+    !important;
+}
+
+
+/*
+ * Little transition label.
+ */
+
+.round-break-label {
+  margin:
+    0 0 3px
+    !important;
+
+  font-size:
+    0.65rem
+    !important;
+
+  letter-spacing:
+    0.13em
+    !important;
+
+  line-height:
+    1
+    !important;
+}
+
+
+/*
+ * Round 2 is Ready
+ */
+
+.round-break-screen > h2 {
+  margin:
+    3px 0 5px
+    !important;
+
+  font-size:
+    clamp(
+      1.7rem,
+      4vw,
+      2.35rem
+    )
+    !important;
+
+  line-height:
+    1.05
+    !important;
+}
+
+
+/*
+ * Explanation.
+ */
+
+.round-break-screen > p {
+  margin:
+    3px 0 8px
+    !important;
+
+  font-size:
+    0.74rem
+    !important;
+
+  line-height:
+    1.2
+    !important;
+}
+
+
+/*
+ * ================================================
+ * ROUND 2 CLUE VALUES
+ *
+ * Turn the old big nested card into one compact
+ * horizontal information strip.
+ * ================================================
+ */
+
+.round2-break-values {
+  width:
+    max-content
+    !important;
+
+  max-width:
+    100%
+    !important;
+
+  margin:
+    8px auto
+    !important;
+
+  padding:
+    7px 12px
+    !important;
+
+  min-height:
+    0
+    !important;
+
+  display:
+    flex
+    !important;
+
+  flex-wrap:
+    wrap;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    7px 12px
+    !important;
+
+  border-radius:
+    10px
+    !important;
+}
+
+
+.round2-break-values > * {
+  margin:
+    0
+    !important;
+}
+
+
+.round2-break-values span {
+  font-size:
+    0.62rem
+    !important;
+
+  letter-spacing:
+    0.10em
+    !important;
+
+  white-space:
+    nowrap;
+}
+
+
+.round2-break-values strong {
+  font-size:
+    1rem
+    !important;
+
+  line-height:
+    1
+    !important;
+
+  white-space:
+    nowrap;
+}
+
+
+/*
+ * ================================================
+ * START ROUND 2
+ * ================================================
+ */
+
+.round-two-start-button {
+  width:
+    auto
+    !important;
+
+  min-width:
+    190px
+    !important;
+
+  min-height:
+    38px
+    !important;
+
+  margin:
+    6px auto 0
+    !important;
+
+  padding:
+    6px 15px
+    !important;
+
+  font-size:
+    0.78rem
+    !important;
+}
+
+
+/*
+ * Non-host waiting message takes the same compact
+ * space as the host's Start button.
+ */
+
+.round-break-waiting {
+  margin:
+    7px auto 0
+    !important;
+
+  padding:
+    7px 12px
+    !important;
+
+  font-size:
+    0.72rem
+    !important;
+
+  line-height:
+    1.2;
+}
+
+
+/*
+ * ================================================
+ * SHORTER VIEWPORTS
+ * ================================================
+ */
+
+@media (
+  max-height:
+  720px
+) and (
+  min-width:
+  701px
+) {
+
+  .round-break-page {
+    padding-top:
+      8px
+      !important;
+  }
+
+
+  .round-break-page::before {
+    width:
+      min(
+        240px,
+        32vw
+      )
+      !important;
+
+    max-width:
+      240px
+      !important;
+  }
+
+
+  .round-break-page > h1 {
+    font-size:
+      2rem
+      !important;
+  }
+
+
+  .round-break-page .scoreboard {
+    margin-bottom:
+      6px
+      !important;
+  }
+
+
+  .round-break-screen {
+    padding:
+      11px 16px
+      !important;
+  }
+
+
+  .round-break-screen > h2 {
+    font-size:
+      1.6rem
+      !important;
+  }
+}
+
+
+/*
+ * ================================================
+ * NARROW DISCORD WINDOWS
+ * ================================================
+ */
+
+@media (
+  max-width:
+  700px
+) {
+
+  .round-break-page::before {
+    width:
+      min(
+        260px,
+        60vw
+      )
+      !important;
+  }
+
+
+  .round-break-page .score-card {
+    flex:
+      1 1 120px;
+
+    max-width:
+      none
+      !important;
+  }
+
+
+  .round2-break-values {
+    width:
+      100%
+      !important;
+  }
+
+
+  .round-two-start-button {
+    width:
+      100%
+      !important;
+  }
+}
+
+
+/* ===== BUZZBOARD ROUND TRANSITION COMPACT V1 END ===== */
