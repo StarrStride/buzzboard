@@ -10914,3 +10914,421 @@ button {
 
 
 /* ===== BUZZBOARD BRAND POLISH V1 END ===== */
+
+/* ===== BUZZBOARD UI HIERARCHY V2 START ===== */
+
+
+/*
+ * --------------------------------
+ * CLEAN UTILITY FONT
+ *
+ * Fugaz stays on game content.
+ * Functional host controls return
+ * to a clean interface typeface.
+ * --------------------------------
+ */
+
+:root {
+  --buzz-ui-font:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+
+.host-utility-buttons button,
+.host-session-buttons button,
+.host-session-confirm-buttons button,
+.host-tools-panel button,
+.host-controls button {
+  font-family:
+    var(--buzz-ui-font)
+    !important;
+
+  font-style:
+    normal
+    !important;
+
+  font-weight:
+    700
+    !important;
+
+  letter-spacing:
+    0
+    !important;
+}
+
+
+/*
+ * --------------------------------
+ * GAME SESSION DOCK
+ * --------------------------------
+ */
+
+.host-session-controls {
+  width:
+    100%;
+
+  margin-top:
+    5px;
+
+  padding:
+    7px 4px 0;
+
+  border-top:
+    1px solid
+    rgba(
+      239,
+      151,
+      210,
+      0.18
+    );
+
+  display:
+    flex
+    !important;
+
+  flex-wrap:
+    wrap;
+
+  align-items:
+    center;
+
+  gap:
+    7px 10px;
+}
+
+
+.host-session-controls::before {
+  content:
+    "GAME SESSION";
+
+  flex:
+    0 0 auto;
+
+  color:
+    #f3a4cf;
+
+  font-family:
+    var(--buzz-display);
+
+  font-size:
+    0.60rem;
+
+  letter-spacing:
+    0.10em;
+
+  white-space:
+    nowrap;
+
+  opacity:
+    0.90;
+}
+
+
+.host-session-buttons {
+  display:
+    flex
+    !important;
+
+  align-items:
+    center;
+
+  justify-content:
+    flex-end
+    !important;
+
+  gap:
+    6px;
+
+  margin-left:
+    auto
+    !important;
+
+  width:
+    auto
+    !important;
+}
+
+
+.host-session-buttons button {
+  flex:
+    0 0 auto;
+
+  width:
+    auto
+    !important;
+
+  min-width:
+    136px;
+
+  min-height:
+    31px;
+
+  padding:
+    5px 13px
+    !important;
+
+  border-radius:
+    9px;
+
+  font-size:
+    0.72rem
+    !important;
+}
+
+
+/*
+ * --------------------------------
+ * RESTART
+ * --------------------------------
+ */
+
+.host-restart-game-button {
+  border:
+    1px solid
+    rgba(
+      240,
+      184,
+      82,
+      0.52
+    )
+    !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      #81531f,
+      #624019
+    )
+    !important;
+
+  color:
+    #fff1c8
+    !important;
+}
+
+
+/*
+ * --------------------------------
+ * EXIT
+ * --------------------------------
+ */
+
+.host-exit-game-button {
+  border:
+    1px solid
+    rgba(
+      230,
+      111,
+      151,
+      0.50
+    )
+    !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      #79334a,
+      #5e293c
+    )
+    !important;
+
+  color:
+    #ffe1eb
+    !important;
+}
+
+
+.host-restart-game-button:hover:not(:disabled),
+.host-exit-game-button:hover:not(:disabled) {
+  transform:
+    translateY(
+      -1px
+    );
+
+  filter:
+    brightness(
+      1.08
+    );
+}
+
+
+/*
+ * --------------------------------
+ * CONFIRMATION ROW
+ * --------------------------------
+ */
+
+.host-session-confirm {
+  flex:
+    1 0 100%;
+
+  width:
+    100%;
+
+  margin:
+    0;
+
+  padding:
+    7px 10px;
+
+  display:
+    grid;
+
+  grid-template-columns:
+    auto
+    minmax(
+      0,
+      1fr
+    )
+    auto;
+
+  align-items:
+    center;
+
+  gap:
+    8px;
+
+  border-radius:
+    9px;
+}
+
+
+.host-session-confirm > strong {
+  font-family:
+    var(--buzz-ui-font)
+    !important;
+
+  font-style:
+    normal;
+
+  font-weight:
+    800;
+
+  font-size:
+    0.70rem;
+
+  white-space:
+    nowrap;
+}
+
+
+.host-session-confirm > span {
+  font-family:
+    var(--buzz-ui-font);
+
+  font-size:
+    0.65rem;
+
+  line-height:
+    1.3;
+}
+
+
+.host-session-confirm-buttons {
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    flex-end;
+
+  gap:
+    5px;
+
+  margin:
+    0;
+}
+
+
+.host-session-confirm-buttons button {
+  min-width:
+    92px;
+
+  min-height:
+    28px;
+
+  padding:
+    4px 9px
+    !important;
+
+  font-size:
+    0.64rem
+    !important;
+}
+
+
+/*
+ * --------------------------------
+ * SMALL DISCORD WINDOWS
+ * --------------------------------
+ */
+
+@media (
+  max-width:
+  700px
+) {
+
+  .host-session-controls {
+    align-items:
+      stretch;
+  }
+
+
+  .host-session-controls::before {
+    width:
+      100%;
+  }
+
+
+  .host-session-buttons {
+    width:
+      100%
+      !important;
+
+    margin-left:
+      0
+      !important;
+  }
+
+
+  .host-session-buttons button {
+    flex:
+      1 1 0;
+
+    min-width:
+      0;
+  }
+
+
+  .host-session-confirm {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .host-session-confirm > strong {
+    white-space:
+      normal;
+  }
+
+
+  .host-session-confirm-buttons {
+    width:
+      100%;
+  }
+
+
+  .host-session-confirm-buttons button {
+    flex:
+      1 1 0;
+  }
+}
+
+
+/* ===== BUZZBOARD UI HIERARCHY V2 END ===== */
