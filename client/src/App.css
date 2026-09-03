@@ -13153,3 +13153,722 @@ button {
 
 
 /* ===== BUZZBOARD HOST WORKSPACE V2 END ===== */
+
+/* ===== BUZZBOARD COMPACT MEDIA FINAL V3 START ===== */
+
+
+/*
+ * ================================================
+ * EMPTY IMAGE EDITOR
+ *
+ * Instead of:
+ *
+ * Image Optional
+ * [ giant No Image Selected box ]
+ * [ Choose Image ]
+ *
+ * becomes one compact row.
+ * ================================================
+ */
+
+.game:has(.game-library)
+.clue-image-editor:has(.clue-image-empty) {
+  display:
+    grid
+    !important;
+
+  grid-template-columns:
+    minmax(
+      0,
+      1fr
+    )
+    auto;
+
+  align-items:
+    center;
+
+  gap:
+    6px;
+
+  margin:
+    6px 0
+    !important;
+
+  padding:
+    6px 7px
+    !important;
+
+  min-height:
+    0
+    !important;
+
+  border-radius:
+    8px
+    !important;
+}
+
+
+.game:has(.game-library)
+.clue-image-editor:has(.clue-image-empty)
+.clue-image-editor-label {
+  margin:
+    0
+    !important;
+
+  display:
+    flex
+    !important;
+
+  align-items:
+    center;
+
+  justify-content:
+    flex-start;
+
+  gap:
+    5px;
+}
+
+
+.game:has(.game-library)
+.clue-image-editor:has(.clue-image-empty)
+.clue-image-editor-label small {
+  margin:
+    0
+    !important;
+
+  font-size:
+    0.58rem
+    !important;
+}
+
+
+/*
+ * The empty placeholder itself provides no useful
+ * information, so collapse it completely.
+ */
+
+.game:has(.game-library)
+.clue-image-editor:has(.clue-image-empty)
+.clue-image-empty {
+  display:
+    none
+    !important;
+}
+
+
+.game:has(.game-library)
+.clue-image-editor:has(.clue-image-empty)
+.clue-image-upload-button {
+  width:
+    auto
+    !important;
+
+  min-width:
+    92px;
+
+  min-height:
+    27px
+    !important;
+
+  margin:
+    0
+    !important;
+
+  padding:
+    4px 7px
+    !important;
+
+  border-radius:
+    7px
+    !important;
+
+  font-size:
+    0.61rem
+    !important;
+}
+
+
+/*
+ * Error/status message still gets a full row if
+ * something actually needs to be shown.
+ */
+
+.game:has(.game-library)
+.clue-image-editor:has(.clue-image-empty)
+.clue-image-message {
+  grid-column:
+    1 / -1;
+
+  margin:
+    1px 0 0
+    !important;
+
+  font-size:
+    0.58rem
+    !important;
+}
+
+
+/*
+ * ================================================
+ * EMPTY AUDIO EDITOR
+ * ================================================
+ */
+
+.game:has(.game-library)
+.clue-audio-editor:has(.clue-audio-empty) {
+  display:
+    grid
+    !important;
+
+  grid-template-columns:
+    minmax(
+      0,
+      1fr
+    )
+    auto;
+
+  align-items:
+    center;
+
+  gap:
+    6px;
+
+  margin:
+    6px 0
+    !important;
+
+  padding:
+    6px 7px
+    !important;
+
+  min-height:
+    0
+    !important;
+
+  border-radius:
+    8px
+    !important;
+}
+
+
+.game:has(.game-library)
+.clue-audio-editor:has(.clue-audio-empty)
+.clue-audio-editor-label {
+  margin:
+    0
+    !important;
+
+  display:
+    flex
+    !important;
+
+  align-items:
+    center;
+
+  justify-content:
+    flex-start;
+
+  gap:
+    5px;
+}
+
+
+.game:has(.game-library)
+.clue-audio-editor:has(.clue-audio-empty)
+.clue-audio-editor-label small {
+  margin:
+    0
+    !important;
+
+  font-size:
+    0.58rem
+    !important;
+}
+
+
+.game:has(.game-library)
+.clue-audio-editor:has(.clue-audio-empty)
+.clue-audio-empty {
+  display:
+    none
+    !important;
+}
+
+
+.game:has(.game-library)
+.clue-audio-editor:has(.clue-audio-empty)
+.clue-audio-upload-button {
+  width:
+    auto
+    !important;
+
+  min-width:
+    92px;
+
+  min-height:
+    27px
+    !important;
+
+  margin:
+    0
+    !important;
+
+  padding:
+    4px 7px
+    !important;
+
+  border-radius:
+    7px
+    !important;
+
+  font-size:
+    0.61rem
+    !important;
+}
+
+
+.game:has(.game-library)
+.clue-audio-editor:has(.clue-audio-empty)
+.clue-audio-message {
+  grid-column:
+    1 / -1;
+
+  margin:
+    1px 0 0
+    !important;
+
+  font-size:
+    0.58rem
+    !important;
+}
+
+
+/*
+ * ================================================
+ * POPULATED MEDIA EDITORS
+ *
+ * Still show previews, just much more efficiently.
+ * ================================================
+ */
+
+.game:has(.game-library)
+.clue-image-editor:not(:has(.clue-image-empty)),
+.game:has(.game-library)
+.clue-audio-editor:not(:has(.clue-audio-empty)) {
+  margin:
+    6px 0
+    !important;
+
+  padding:
+    7px
+    !important;
+
+  border-radius:
+    8px
+    !important;
+}
+
+
+.game:has(.game-library)
+.clue-image-preview,
+.game:has(.game-library)
+.clue-audio-preview {
+  margin:
+    5px 0
+    !important;
+
+  padding:
+    5px
+    !important;
+
+  min-height:
+    0
+    !important;
+
+  border-radius:
+    7px
+    !important;
+}
+
+
+/*
+ * Keep uploaded image previews useful but not huge.
+ */
+
+.game:has(.game-library)
+.clue-image-preview img {
+  width:
+    auto
+    !important;
+
+  max-width:
+    100%
+    !important;
+
+  max-height:
+    110px
+    !important;
+
+  object-fit:
+    contain;
+
+  margin:
+    0 auto;
+}
+
+
+/*
+ * Upload / replace / remove actions.
+ */
+
+.game:has(.game-library)
+.clue-image-upload-button,
+.game:has(.game-library)
+.clue-audio-upload-button,
+.game:has(.game-library)
+.remove-clue-image-button,
+.game:has(.game-library)
+.remove-clue-audio-button {
+  min-height:
+    28px
+    !important;
+
+  padding:
+    4px 7px
+    !important;
+
+  border-radius:
+    7px
+    !important;
+
+  font-size:
+    0.61rem
+    !important;
+}
+
+
+/*
+ * ================================================
+ * CLUE / ANSWER FIELDS
+ * ================================================
+ */
+
+.game:has(.game-library)
+.editor-clue textarea {
+  min-height:
+    52px
+    !important;
+
+  padding:
+    6px 7px
+    !important;
+
+  line-height:
+    1.25
+    !important;
+}
+
+
+.game:has(.game-library)
+.editor-clue label {
+  margin-top:
+    6px
+    !important;
+}
+
+
+/*
+ * ================================================
+ * SAVE / START DOCK
+ *
+ * Stay accessible while scrolling, but stop being
+ * a full-width billboard over the editor.
+ * ================================================
+ */
+
+.game:has(.game-library)
+.editor-actions {
+  position:
+    sticky
+    !important;
+
+  bottom:
+    10px
+    !important;
+
+  left:
+    auto
+    !important;
+
+  right:
+    auto
+    !important;
+
+  z-index:
+    8;
+
+  width:
+    max-content
+    !important;
+
+  max-width:
+    calc(
+      100% - 16px
+    );
+
+  margin:
+    10px 0 0 auto
+    !important;
+
+  padding:
+    5px
+    !important;
+
+  display:
+    flex
+    !important;
+
+  flex-wrap:
+    nowrap
+    !important;
+
+  justify-content:
+    flex-end;
+
+  gap:
+    5px
+    !important;
+
+  border-radius:
+    10px
+    !important;
+
+  background:
+    rgba(
+      40,
+      18,
+      49,
+      0.94
+    )
+    !important;
+
+  backdrop-filter:
+    blur(
+      8px
+    );
+}
+
+
+.game:has(.game-library)
+.editor-actions button {
+  width:
+    auto
+    !important;
+
+  min-width:
+    118px
+    !important;
+
+  min-height:
+    32px
+    !important;
+
+  padding:
+    5px 10px
+    !important;
+
+  font-size:
+    0.65rem
+    !important;
+}
+
+
+/*
+ * ================================================
+ * FINAL ROUND EDITOR
+ * ================================================
+ */
+
+.game:has(.game-library)
+.final-editor {
+  margin-top:
+    18px
+    !important;
+
+  padding:
+    15px 16px
+    !important;
+
+  border-radius:
+    14px
+    !important;
+}
+
+
+.game:has(.game-library)
+.final-editor-heading {
+  margin:
+    0 0 11px
+    !important;
+
+  display:
+    grid;
+
+  grid-template-columns:
+    auto
+    auto
+    minmax(
+      0,
+      1fr
+    );
+
+  align-items:
+    baseline;
+
+  gap:
+    6px 10px;
+}
+
+
+.game:has(.game-library)
+.final-editor-heading > span {
+  font-size:
+    0.68rem
+    !important;
+
+  white-space:
+    nowrap;
+}
+
+
+.game:has(.game-library)
+.final-editor-heading h2 {
+  margin:
+    0
+    !important;
+
+  font-size:
+    1.35rem
+    !important;
+
+  white-space:
+    nowrap;
+}
+
+
+.game:has(.game-library)
+.final-editor-heading p {
+  margin:
+    0
+    !important;
+
+  max-width:
+    none
+    !important;
+
+  font-size:
+    0.72rem
+    !important;
+
+  line-height:
+    1.25
+    !important;
+}
+
+
+.game:has(.game-library)
+.final-editor > label {
+  gap:
+    4px
+    !important;
+
+  margin-top:
+    9px
+    !important;
+}
+
+
+.game:has(.game-library)
+.final-editor > label > span {
+  font-size:
+    0.72rem
+    !important;
+}
+
+
+.game:has(.game-library)
+.final-editor input {
+  min-height:
+    37px
+    !important;
+
+  padding:
+    7px 10px
+    !important;
+}
+
+
+.game:has(.game-library)
+.final-editor textarea {
+  min-height:
+    62px
+    !important;
+
+  padding:
+    7px 10px
+    !important;
+
+  line-height:
+    1.3
+    !important;
+}
+
+
+/*
+ * ================================================
+ * NARROW HOST WINDOWS
+ * ================================================
+ */
+
+@media (
+  max-width:
+  850px
+) {
+
+  .game:has(.game-library)
+  .final-editor-heading {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .game:has(.game-library)
+  .editor-actions {
+    width:
+      calc(
+        100% - 12px
+      )
+      !important;
+
+    margin:
+      10px auto 0
+      !important;
+  }
+
+
+  .game:has(.game-library)
+  .editor-actions button {
+    flex:
+      1 1 0
+      !important;
+
+    min-width:
+      0
+      !important;
+  }
+}
+
+
+/* ===== BUZZBOARD COMPACT MEDIA FINAL V3 END ===== */
