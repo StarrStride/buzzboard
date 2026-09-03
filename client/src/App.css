@@ -13872,3 +13872,78 @@ button {
 
 
 /* ===== BUZZBOARD COMPACT MEDIA FINAL V3 END ===== */
+
+/* ===== BUZZBOARD EMPTY MEDIA LABEL FIX START ===== */
+
+
+/*
+ * The old "Optional" small text gets crushed
+ * between the label and upload button in the
+ * new compact media row.
+ *
+ * Hide it only for empty media slots.
+ */
+
+.game:has(.game-library)
+.clue-image-editor:has(.clue-image-empty)
+.clue-image-editor-label small,
+.game:has(.game-library)
+.clue-audio-editor:has(.clue-audio-empty)
+.clue-audio-editor-label small {
+  display:
+    none
+    !important;
+}
+
+
+/*
+ * Keep Image / Audio cleanly anchored left.
+ */
+
+.game:has(.game-library)
+.clue-image-editor:has(.clue-image-empty)
+.clue-image-editor-label,
+.game:has(.game-library)
+.clue-audio-editor:has(.clue-audio-empty)
+.clue-audio-editor-label {
+  min-width:
+    0;
+
+  margin:
+    0
+    !important;
+
+  padding:
+    0
+    !important;
+
+  gap:
+    0
+    !important;
+
+  line-height:
+    1
+    !important;
+}
+
+
+/*
+ * Upload button stays neatly on the right.
+ */
+
+.game:has(.game-library)
+.clue-image-editor:has(.clue-image-empty)
+.clue-image-upload-button,
+.game:has(.game-library)
+.clue-audio-editor:has(.clue-audio-empty)
+.clue-audio-upload-button {
+  justify-self:
+    end;
+
+  margin:
+    0
+    !important;
+}
+
+
+/* ===== BUZZBOARD EMPTY MEDIA LABEL FIX END ===== */
