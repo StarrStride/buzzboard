@@ -10962,26 +10962,22 @@ button {
 
 /* ===== BUZZBOARD CONTROL FONT CLEANUP END ===== */
 
-/* ===== BUZZBOARD SESSION CONFIRM POLISH START ===== */
+/* ===== BUZZBOARD FULL WIDTH SESSION V2 START ===== */
 
 
 /*
  * --------------------------------
- * GAME SESSION CONFIRMATION
+ * GAME SESSION OWNS FULL DOCK WIDTH
  * --------------------------------
- *
- * Full-width compact confirmation.
- * Text stays readable.
- * Actions stay neatly on the right.
  */
 
-.host-session-confirm {
+.host-session-controls {
   grid-column:
     1 / -1
     !important;
 
-  flex:
-    1 0 100%
+  justify-self:
+    stretch
     !important;
 
   width:
@@ -10994,44 +10990,61 @@ button {
 
   box-sizing:
     border-box;
+}
+
+
+/*
+ * --------------------------------
+ * FULL-WIDTH CONFIRMATION STRIP
+ * --------------------------------
+ */
+
+.host-session-confirm {
+  grid-column:
+    1 / -1
+    !important;
+
+  justify-self:
+    stretch
+    !important;
+
+  width:
+    100%
+    !important;
+
+  max-width:
+    none
+    !important;
+
+  min-width:
+    0
+    !important;
+
+  box-sizing:
+    border-box;
 
   margin:
     1px 0 0
     !important;
 
   padding:
-    9px 11px
+    7px 10px
     !important;
 
   display:
-    grid
+    flex
     !important;
 
-  grid-template-columns:
-    minmax(
-      0,
-      1fr
-    )
-    auto
+  flex-direction:
+    row
     !important;
-
-  grid-template-rows:
-    auto
-    auto;
-
-  grid-template-areas:
-    "confirm-title confirm-actions"
-    "confirm-copy confirm-actions";
 
   align-items:
-    center;
-
-  column-gap:
-    18px
+    center
     !important;
 
-  row-gap:
-    2px
+  gap:
+    10px
     !important;
 
   border-radius:
@@ -11045,21 +11058,19 @@ button {
 
 
 /*
- * Confirmation heading
+ * Heading
  */
 
 .host-session-confirm > strong {
-  grid-area:
-    confirm-title;
-
-  margin:
-    0;
+  flex:
+    0 0 auto;
 
   min-width:
-    0;
+    122px;
 
-  color:
-    #fff0f7;
+  margin:
+    0
+    !important;
 
   font-family:
     var(--buzz-display)
@@ -11069,28 +11080,26 @@ button {
     0.70rem
     !important;
 
-  font-style:
-    normal;
-
   font-weight:
     400;
 
   line-height:
-    1.2;
+    1.15;
 
   white-space:
-    normal
+    nowrap
     !important;
 }
 
 
 /*
- * Explanation
+ * Warning copy gets all remaining width.
  */
 
 .host-session-confirm > span {
-  grid-area:
-    confirm-copy;
+  flex:
+    1 1 auto
+    !important;
 
   width:
     auto
@@ -11104,15 +11113,8 @@ button {
     0;
 
   margin:
-    0;
-
-  color:
-    rgba(
-      239,
-      218,
-      232,
-      0.80
-    );
+    0
+    !important;
 
   font-family:
     system-ui,
@@ -11127,35 +11129,36 @@ button {
     !important;
 
   font-style:
-    normal;
+    normal
+    !important;
 
   font-weight:
     500;
 
   line-height:
-    1.3;
+    1.25;
 
   white-space:
-    normal
-    !important;
-
-  overflow-wrap:
     normal
     !important;
 
   word-break:
     normal
     !important;
+
+  overflow-wrap:
+    normal
+    !important;
 }
 
 
 /*
- * Action buttons
+ * Buttons remain compact on right.
  */
 
 .host-session-confirm-buttons {
-  grid-area:
-    confirm-actions;
+  flex:
+    0 0 auto;
 
   width:
     auto
@@ -11168,6 +11171,9 @@ button {
   display:
     flex
     !important;
+
+  flex-direction:
+    row;
 
   align-items:
     center;
@@ -11190,11 +11196,11 @@ button {
     !important;
 
   min-width:
-    104px
+    100px
     !important;
 
   min-height:
-    31px
+    30px
     !important;
 
   margin:
@@ -11205,32 +11211,8 @@ button {
     5px 10px
     !important;
 
-  border-radius:
-    8px
-    !important;
-
-  font-family:
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif
-    !important;
-
   font-size:
     0.66rem
-    !important;
-
-  font-style:
-    normal
-    !important;
-
-  font-weight:
-    700
-    !important;
-
-  letter-spacing:
-    0
     !important;
 
   white-space:
@@ -11239,49 +11221,47 @@ button {
 
 
 /*
- * Small Discord windows
+ * --------------------------------
+ * SMALL DISCORD WINDOWS
+ * --------------------------------
  */
 
 @media (
   max-width:
-  700px
+  720px
 ) {
 
   .host-session-confirm {
-    grid-template-columns:
-      1fr
+    flex-wrap:
+      wrap
       !important;
+  }
 
-    grid-template-areas:
-      "confirm-title"
-      "confirm-copy"
-      "confirm-actions";
 
-    row-gap:
-      5px
+  .host-session-confirm > strong {
+    min-width:
+      0;
+
+    white-space:
+      normal
       !important;
+  }
+
+
+  .host-session-confirm > span {
+    flex:
+      1 1 60%;
   }
 
 
   .host-session-confirm-buttons {
-    width:
-      100%
-      !important;
+    flex:
+      1 0 100%;
 
     justify-content:
-      stretch;
-  }
-
-
-  .host-session-confirm-buttons button {
-    flex:
-      1 1 0;
-
-    min-width:
-      0
-      !important;
+      flex-end;
   }
 }
 
 
-/* ===== BUZZBOARD SESSION CONFIRM POLISH END ===== */
+/* ===== BUZZBOARD FULL WIDTH SESSION V2 END ===== */
