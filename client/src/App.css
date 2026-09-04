@@ -17099,3 +17099,33 @@ button:nth-child(2) {
 
 
 /* ===== BUZZBOARD REAL ROUND2 VALUES V4 END ===== */
+
+/* ===== BUZZBOARD ROUND 1 CENTER FIX START ===== */
+
+.round-break-page > h1 {
+  width:
+    100%
+    !important;
+
+  max-width:
+    none
+    !important;
+
+  margin-left:
+    auto
+    !important;
+
+  margin-right:
+    auto
+    !important;
+
+  align-self:
+    stretch
+    !important;
+
+  text-align:
+    center
+    !important;
+}
+
+/* ===== BUZZBOARD ROUND 1 CENTER FIX END ===== */
