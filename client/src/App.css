@@ -16672,3 +16672,233 @@ button:nth-child(2) {
 
 
 /* ===== BUZZBOARD SOUND + ROUND2 POLISH V2 END ===== */
+
+/* ===== BUZZBOARD ROUND2 TEXT POLISH V3 START ===== */
+
+
+/*
+ * --------------------------------
+ * ROUND 2 READY CARD
+ * --------------------------------
+ */
+
+.round-break-screen {
+  width:
+    min(
+      660px,
+      88%
+    )
+    !important;
+
+  padding:
+    14px 18px
+    !important;
+}
+
+
+.round-break-screen > h2 {
+  margin:
+    0 0 5px
+    !important;
+
+  font-size:
+    clamp(
+      1.55rem,
+      3.4vw,
+      1.9rem
+    )
+    !important;
+
+  line-height:
+    1
+    !important;
+}
+
+
+.round-break-screen > p {
+  margin:
+    0 0 8px
+    !important;
+
+  font-size:
+    0.70rem
+    !important;
+
+  line-height:
+    1.2
+    !important;
+
+  opacity:
+    0.86;
+}
+
+
+/*
+ * --------------------------------
+ * VALUES
+ *
+ * Remove the giant nested card and redundant
+ * "ROUND 2 CLUE VALUES" heading.
+ * --------------------------------
+ */
+
+.round2-break-values {
+  width:
+    100%
+    !important;
+
+  max-width:
+    100%
+    !important;
+
+  min-height:
+    0
+    !important;
+
+  margin:
+    9px auto 10px
+    !important;
+
+  padding:
+    5px 0
+    !important;
+
+  border:
+    0
+    !important;
+
+  border-radius:
+    0
+    !important;
+
+  background:
+    transparent
+    !important;
+
+  box-shadow:
+    none
+    !important;
+
+  display:
+    flex
+    !important;
+
+  align-items:
+    center
+    !important;
+
+  justify-content:
+    center
+    !important;
+}
+
+
+/*
+ * Redundant label.
+ */
+
+.round2-break-values span {
+  display:
+    none
+    !important;
+}
+
+
+/*
+ * The values become the visual centerpiece.
+ */
+
+.round2-break-values strong {
+  margin:
+    0
+    !important;
+
+  padding:
+    0
+    !important;
+
+  font-size:
+    clamp(
+      1rem,
+      2.3vw,
+      1.25rem
+    )
+    !important;
+
+  line-height:
+    1
+    !important;
+
+  letter-spacing:
+    0.015em
+    !important;
+
+  white-space:
+    nowrap
+    !important;
+}
+
+
+/*
+ * --------------------------------
+ * START BUTTON
+ * --------------------------------
+ */
+
+.round-two-start-button {
+  width:
+    auto
+    !important;
+
+  min-width:
+    175px
+    !important;
+
+  min-height:
+    36px
+    !important;
+
+  margin:
+    4px auto 0
+    !important;
+
+  padding:
+    5px 14px
+    !important;
+
+  font-size:
+    0.72rem
+    !important;
+}
+
+
+/*
+ * --------------------------------
+ * NARROW WINDOWS
+ * --------------------------------
+ */
+
+@media (
+  max-width:
+  600px
+) {
+
+  .round2-break-values strong {
+    white-space:
+      normal
+      !important;
+
+    text-align:
+      center;
+  }
+
+
+  .round-two-start-button {
+    width:
+      100%
+      !important;
+  }
+}
+
+
+/* ===== BUZZBOARD ROUND2 TEXT POLISH V3 END ===== */
