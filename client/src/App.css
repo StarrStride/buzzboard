@@ -16902,3 +16902,200 @@ button:nth-child(2) {
 
 
 /* ===== BUZZBOARD ROUND2 TEXT POLISH V3 END ===== */
+
+/* ===== BUZZBOARD REAL ROUND2 VALUES V4 START ===== */
+
+
+/*
+ * THIS is the real live class:
+ *
+ * .round-break-values
+ *
+ * Strip the nested panel entirely and let the
+ * dollar values stand on their own.
+ */
+
+.round-break-values {
+  width:
+    100%
+    !important;
+
+  max-width:
+    100%
+    !important;
+
+  min-height:
+    0
+    !important;
+
+  margin:
+    10px auto 12px
+    !important;
+
+  padding:
+    3px 0
+    !important;
+
+  border:
+    0
+    !important;
+
+  border-radius:
+    0
+    !important;
+
+  background:
+    transparent
+    !important;
+
+  box-shadow:
+    none
+    !important;
+
+  display:
+    flex
+    !important;
+
+  align-items:
+    center
+    !important;
+
+  justify-content:
+    center
+    !important;
+
+  flex-wrap:
+    wrap
+    !important;
+
+  gap:
+    0
+    !important;
+
+  font-family:
+    var(--buzz-display);
+
+  font-size:
+    clamp(
+      1.15rem,
+      2.3vw,
+      1.4rem
+    )
+    !important;
+
+  line-height:
+    1.1
+    !important;
+}
+
+
+/*
+ * Hide the redundant:
+ *
+ * ROUND 2 CLUE VALUES
+ */
+
+.round-break-values > p:first-child {
+  display:
+    none
+    !important;
+}
+
+
+/*
+ * Whatever element actually contains the money
+ * values inherits one consistent display style.
+ */
+
+.round-break-values > strong,
+.round-break-values > span,
+.round-break-values > div,
+.round-break-values > p:not(:first-child) {
+  width:
+    auto
+    !important;
+
+  max-width:
+    100%
+    !important;
+
+  margin:
+    0
+    !important;
+
+  padding:
+    0
+    !important;
+
+  border:
+    0
+    !important;
+
+  background:
+    transparent
+    !important;
+
+  box-shadow:
+    none
+    !important;
+
+  font-size:
+    inherit
+    !important;
+
+  line-height:
+    inherit
+    !important;
+
+  white-space:
+    nowrap
+    !important;
+}
+
+
+/*
+ * Keep the surrounding transition compact.
+ */
+
+.round-break-screen {
+  padding:
+    14px 18px
+    !important;
+}
+
+
+.round-break-screen > p {
+  margin-bottom:
+    4px
+    !important;
+}
+
+
+.round-two-start-button {
+  margin-top:
+    4px
+    !important;
+}
+
+
+/*
+ * Narrow windows can wrap the value line.
+ */
+
+@media (
+  max-width:
+  600px
+) {
+
+  .round-break-values > strong,
+  .round-break-values > span,
+  .round-break-values > div,
+  .round-break-values > p:not(:first-child) {
+    white-space:
+      normal
+      !important;
+  }
+}
+
+
+/* ===== BUZZBOARD REAL ROUND2 VALUES V4 END ===== */
