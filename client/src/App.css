@@ -16135,3 +16135,540 @@ button:nth-child(2) {
 
 
 /* ===== BUZZBOARD FINAL HOST STRUCTURE V2 END ===== */
+
+/* ===== BUZZBOARD SOUND + ROUND2 POLISH V2 START ===== */
+
+
+/*
+ * ================================================
+ * SOUND CONTROL
+ *
+ * Remove the Sound button from the vertical flow.
+ * It now lives in the upper-right of BuzzBoard.
+ * ================================================
+ */
+
+.game {
+  position:
+    relative;
+}
+
+
+.game > .sound-toggle-button {
+  position:
+    absolute
+    !important;
+
+  top:
+    calc(
+      14px +
+      env(
+        safe-area-inset-top,
+        0px
+      )
+    )
+    !important;
+
+  right:
+    18px
+    !important;
+
+  z-index:
+    20;
+
+  width:
+    auto
+    !important;
+
+  min-width:
+    92px
+    !important;
+
+  min-height:
+    34px
+    !important;
+
+  margin:
+    0
+    !important;
+
+  padding:
+    5px 10px
+    !important;
+
+  border-radius:
+    999px
+    !important;
+
+  font-size:
+    0.68rem
+    !important;
+
+  box-shadow:
+    0 6px 18px
+    rgba(
+      0,
+      0,
+      0,
+      0.18
+    );
+}
+
+
+/*
+ * Keep the icon/text snug.
+ */
+
+.game > .sound-toggle-button > span,
+.game > .sound-toggle-button > strong {
+  margin:
+    0
+    !important;
+
+  line-height:
+    1
+    !important;
+}
+
+
+/*
+ * ================================================
+ * ROUND BREAK PAGE
+ * ================================================
+ */
+
+.round-break-page {
+  padding-top:
+    12px
+    !important;
+
+  padding-bottom:
+    18px
+    !important;
+}
+
+
+/*
+ * Sound moving out of flow gives us room to
+ * tighten the top branding slightly too.
+ */
+
+.round-break-page::before {
+  width:
+    min(
+      270px,
+      34vw
+    )
+    !important;
+
+  max-width:
+    270px
+    !important;
+
+  margin-bottom:
+    2px
+    !important;
+}
+
+
+.round-break-page > h1 {
+  margin:
+    2px 0
+    !important;
+
+  font-size:
+    clamp(
+      1.9rem,
+      4.5vw,
+      2.75rem
+    )
+    !important;
+
+  line-height:
+    1
+    !important;
+}
+
+
+.round-break-page > p {
+  margin:
+    3px 0 6px
+    !important;
+
+  font-size:
+    0.72rem
+    !important;
+}
+
+
+/*
+ * ================================================
+ * SCOREBOARD
+ * ================================================
+ */
+
+.round-break-page .scoreboard {
+  margin:
+    2px auto 6px
+    !important;
+
+  gap:
+    5px
+    !important;
+}
+
+
+.round-break-page .score-card {
+  padding:
+    6px 8px
+    !important;
+
+  min-height:
+    0
+    !important;
+}
+
+
+/*
+ * ================================================
+ * REMOVE DUPLICATE LABEL
+ *
+ * The screen already says Round 1 Complete above.
+ * ================================================
+ */
+
+.round-break-label {
+  display:
+    none
+    !important;
+}
+
+
+/*
+ * ================================================
+ * ROUND 2 READY CARD
+ * ================================================
+ */
+
+.round-break-screen {
+  width:
+    min(
+      700px,
+      90%
+    )
+    !important;
+
+  max-width:
+    700px
+    !important;
+
+  margin:
+    2px auto 0
+    !important;
+
+  padding:
+    12px 16px
+    !important;
+
+  border-radius:
+    14px
+    !important;
+}
+
+
+.round-break-screen > h2 {
+  margin:
+    0 0 3px
+    !important;
+
+  font-size:
+    clamp(
+      1.5rem,
+      3.5vw,
+      1.95rem
+    )
+    !important;
+
+  line-height:
+    1
+    !important;
+}
+
+
+.round-break-screen > p {
+  margin:
+    3px 0 7px
+    !important;
+
+  font-size:
+    0.69rem
+    !important;
+
+  line-height:
+    1.15
+    !important;
+}
+
+
+/*
+ * ================================================
+ * ROUND 2 CLUE VALUES
+ *
+ * Convert the nested giant card into one compact
+ * horizontal information strip.
+ * ================================================
+ */
+
+.round2-break-values {
+  width:
+    auto
+    !important;
+
+  max-width:
+    100%
+    !important;
+
+  min-height:
+    0
+    !important;
+
+  margin:
+    6px auto
+    !important;
+
+  padding:
+    7px 11px
+    !important;
+
+  display:
+    flex
+    !important;
+
+  flex-direction:
+    row
+    !important;
+
+  flex-wrap:
+    nowrap
+    !important;
+
+  align-items:
+    center
+    !important;
+
+  justify-content:
+    center
+    !important;
+
+  gap:
+    10px
+    !important;
+
+  border-radius:
+    9px
+    !important;
+}
+
+
+.round2-break-values > * {
+  width:
+    auto
+    !important;
+
+  margin:
+    0
+    !important;
+
+  padding:
+    0
+    !important;
+}
+
+
+.round2-break-values span {
+  flex:
+    0 0 auto;
+
+  font-size:
+    0.56rem
+    !important;
+
+  letter-spacing:
+    0.08em
+    !important;
+
+  line-height:
+    1
+    !important;
+
+  white-space:
+    nowrap
+    !important;
+}
+
+
+.round2-break-values strong {
+  flex:
+    0 0 auto;
+
+  font-size:
+    0.90rem
+    !important;
+
+  line-height:
+    1
+    !important;
+
+  white-space:
+    nowrap
+    !important;
+}
+
+
+/*
+ * ================================================
+ * START ROUND 2
+ * ================================================
+ */
+
+.round-two-start-button {
+  width:
+    auto
+    !important;
+
+  min-width:
+    165px
+    !important;
+
+  min-height:
+    34px
+    !important;
+
+  margin:
+    4px auto 0
+    !important;
+
+  padding:
+    5px 12px
+    !important;
+
+  font-size:
+    0.69rem
+    !important;
+}
+
+
+.round-break-waiting {
+  margin:
+    5px auto 0
+    !important;
+
+  padding:
+    5px 9px
+    !important;
+
+  font-size:
+    0.66rem
+    !important;
+}
+
+
+/*
+ * ================================================
+ * FINAL GAMEPLAY
+ *
+ * Moving Sound out of flow lets Final content
+ * naturally rise upward.
+ * ================================================
+ */
+
+.game:has(.final-round-screen),
+.game:has(.final-results) {
+  padding-top:
+    12px
+    !important;
+}
+
+
+.game:has(.final-round-screen)::before,
+.game:has(.final-results)::before {
+  margin-bottom:
+    0
+    !important;
+}
+
+
+/*
+ * Category pill directly below logo.
+ */
+
+.game:has(.final-round-screen) > p {
+  margin:
+    1px 0 4px
+    !important;
+}
+
+
+/*
+ * Scoreboard follows immediately.
+ */
+
+.game:has(.final-round-screen)
+.scoreboard {
+  margin:
+    3px auto 6px
+    !important;
+}
+
+
+/*
+ * ================================================
+ * SMALL WINDOWS
+ * ================================================
+ */
+
+@media (
+  max-width:
+  700px
+) {
+
+  /*
+   * On narrow screens return Sound to normal flow
+   * so it can't overlap branding/content.
+   */
+
+  .game > .sound-toggle-button {
+    position:
+      static
+      !important;
+
+    margin:
+      5px auto
+      !important;
+  }
+
+
+  .round2-break-values {
+    width:
+      100%
+      !important;
+
+    flex-wrap:
+      wrap
+      !important;
+
+    gap:
+      5px 8px
+      !important;
+  }
+
+
+  .round-two-start-button {
+    width:
+      100%
+      !important;
+  }
+}
+
+
+/* ===== BUZZBOARD SOUND + ROUND2 POLISH V2 END ===== */
